@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
 
+import { ErrorNotice } from '@/components/ErrorNotice';
 import { RecipeCard } from '@/components/RecipeCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,16 +17,20 @@ export default function CookScreen() {
   const { items, hydrated } = usePantry();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function suggest() {
     setLoading(true);
+    setError(null);
     try {
       const response = await postJson<{ recipes: Recipe[] }>('/api/suggest', {
         pantry: items.map((item) => item.name),
       });
       setRecipes(response.recipes);
     } catch (error) {
-      Alert.alert('Could not find recipes', error instanceof Error ? error.message : 'Try again.');
+      const message = error instanceof Error ? error.message : 'Try again.';
+      setError(message);
+      Alert.alert('Could not find recipes', message);
     } finally {
       setLoading(false);
     }
@@ -47,6 +52,7 @@ export default function CookScreen() {
         <Button onPress={() => void suggest()} disabled={loading || !hydrated}>
           <Text>{loading ? 'Thinking…' : 'Suggest recipes'}</Text>
         </Button>
+        <ErrorNotice title="Could not find recipes" message={error} />
 
         {recipes.length > 0 && (
           <View className="mt-2 gap-3">
@@ -54,9 +60,9 @@ export default function CookScreen() {
               <Text className="text-2xl font-extrabold">Best matches</Text>
               <Text variant="muted">Ranked for you</Text>
             </View>
-            {recipes.map((recipe) => (
+            {recipes.map((recipe, index) => (
               <RecipeCard
-                key={recipe.title}
+                key={`${index}-${recipe.title}`}
                 recipe={recipe}
                 onPress={() => {
                   setCurrentRecipe(recipe);
@@ -66,7 +72,7 @@ export default function CookScreen() {
             ))}
           </View>
         )}
-        {!loading && recipes.length === 0 && (
+        {!loading && !error && recipes.length === 0 && (
           <Card className="mt-2 gap-2 rounded-2xl border-0 bg-secondary p-5 shadow-none">
             <Text className="text-2xl text-primary">✦</Text>
             <Text className="text-lg font-extrabold">A little inspiration goes a long way.</Text>

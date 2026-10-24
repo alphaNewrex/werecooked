@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
     const apiKey = process.env.INSTACART_API_KEY;
     if (!apiKey) {
-      return Response.json({ url: null });
+      return Response.json({ url: null, reason: 'INSTACART_API_KEY is not configured on the server.' });
     }
 
     const response = await fetch(

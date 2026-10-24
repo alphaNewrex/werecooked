@@ -73,10 +73,14 @@ export function PantryProvider({ children }: { children: React.ReactNode }) {
       },
       updateItem: (id, input) => {
         const existing = items.find((item) => item.id === id);
+        const renamed =
+          !!existing && existing.name.trim().toLowerCase() !== input.name.trim().toLowerCase();
         setItems((current) =>
-          current.map((item) => (item.id === id ? { ...item, ...input } : item)),
+          current.map((item) =>
+            item.id === id ? { ...item, ...input, ...(renamed ? { macros: undefined } : {}) } : item,
+          ),
         );
-        if (existing && existing.name.trim().toLowerCase() !== input.name.trim().toLowerCase()) {
+        if (existing && renamed) {
           enrichItems([{ ...existing, ...input }]);
         }
       },

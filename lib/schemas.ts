@@ -74,3 +74,11 @@ export const ReelResponseSchema = z.object({
   recipe: RecipeSchema,
   sourceNotes: z.string(),
 });
+
+// AI output for caption-only reel links. The flag comes first so the model decides
+// whether the caption describes food before it writes a recipe.
+export const ReelLinkAiSchema = z.object({
+  captionDescribesRecipe: z.boolean(),
+  recipe: RecipeSchema,
+  sourceNotes: z.string(),
+});

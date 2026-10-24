@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { expect, test } from '@playwright/test';
 
 import { RecipeSchema } from '../lib/schemas';
+import { instacartConfigured } from './env';
 
 const fixture = (name: string) => resolve(process.cwd(), 'e2e/fixtures', name);
 
@@ -13,9 +14,11 @@ async function imageBase64(name: string) {
 
 test.describe('CookFood API', () => {
   test('scans the pantry photo', async ({ request }) => {
+    // pantry-photo.jpg shows only one food (poblanos), so a correct scan returns one item.
+    // Use the multi-food USDA photo to verify that several distinct items are detected.
     const response = await request.post('/api/scan-pantry', {
       data: {
-        imageBase64: await imageBase64('pantry-photo.jpg'),
+        imageBase64: await imageBase64('pantry-groceries.jpg'),
         mimeType: 'image/jpeg',
       },
       timeout: 120_000,
@@ -79,7 +82,9 @@ test.describe('CookFood API', () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.url).toMatch(/^https:\/\//);
+    expect(body, `grocery-link body: ${JSON.stringify(body)}`).toMatchObject({
+      url: instacartConfigured() ? expect.stringMatching(/^https:\/\//) : null,
+    });
   });
 
   test('looks up egg and banana macros', async ({ request }) => {

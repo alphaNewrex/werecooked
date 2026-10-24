@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, SafeAreaView, ScrollView, Share, View } from 'react-native';
+import { Alert, Linking, Platform, SafeAreaView, ScrollView, Share, View } from 'react-native';
 
+import { ErrorNotice } from '@/components/ErrorNotice';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,6 +16,9 @@ export default function RecipeScreen() {
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [groceryLoading, setGroceryLoading] = useState(false);
+  const [groceryUrl, setGroceryUrl] = useState<string | null>(null);
+  const [shoppingList, setShoppingList] = useState<string | null>(null);
+  const [groceryError, setGroceryError] = useState<string | null>(null);
 
   useEffect(() => {
     setRecipe(getCurrentRecipe());
@@ -31,25 +35,42 @@ export default function RecipeScreen() {
       return;
     }
     setGroceryLoading(true);
+    setGroceryError(null);
+    setGroceryUrl(null);
+    setShoppingList(null);
     try {
       const response = await postJson<{ url: string | null }>('/api/grocery-link', {
         title: recipe.title,
         items: missing.map(({ name, amount }) => ({ name, amount })),
       });
       if (response.url) {
-        await Linking.openURL(response.url);
+        setGroceryUrl(response.url);
+        await openGroceryUrl(response.url);
       } else {
-        await Share.share({
-          title: `${recipe.title} shopping list`,
-          message: `${recipe.title} shopping list\n\n${missing
-            .map((item) => `• ${item.amount} ${item.name}`)
-            .join('\n')}\n\nEstimated total: $${total.toFixed(2)}`,
-        });
+        const message = `${recipe.title} shopping list\n\n${missing
+          .map((item) => `• ${item.amount} ${item.name}`)
+          .join('\n')}\n\nEstimated total: $${total.toFixed(2)}`;
+        // Always show the list inline: the Web Share API is missing in many browsers.
+        setShoppingList(message);
+        await Share.share({ title: `${recipe.title} shopping list`, message }).catch(() => undefined);
       }
     } catch (error) {
-      Alert.alert('Could not make a shopping list', error instanceof Error ? error.message : 'Try again.');
+      const message = error instanceof Error ? error.message : 'Try again.';
+      setGroceryError(message);
+      Alert.alert('Could not make a shopping list', message);
     } finally {
       setGroceryLoading(false);
+    }
+  }
+
+  async function openGroceryUrl(url: string) {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      // The inline "Open Instacart list" button remains available (e.g. popup blocked).
+      if (Platform.OS !== 'web') {
+        setGroceryError(error instanceof Error ? error.message : 'Could not open Instacart.');
+      }
     }
   }
 
@@ -91,20 +112,22 @@ export default function RecipeScreen() {
         <Text className="mt-1 text-2xl font-extrabold">Ingredients</Text>
         <Card className="gap-3 rounded-2xl p-4">
           <Text className="text-xs font-black uppercase tracking-widest text-secondary-foreground">You have</Text>
-          {have.map((item) => (
-            <View className="flex-row items-center gap-2" key={`have-${item.name}`}>
+          {have.length === 0 && <Text variant="muted">Nothing from your pantry yet.</Text>}
+          {have.map((item, index) => (
+            <View className="flex-row items-center gap-2" key={`have-${index}-${item.name}`}>
               <Badge variant="secondary">
                 <Text>✓</Text>
               </Badge>
               <Text className="flex-1">{item.amount} {item.name}</Text>
             </View>
           ))}
+          <Separator className="my-1" />
+          <Text className="text-xs font-black uppercase tracking-widest text-primary">You need</Text>
+          {missing.length === 0 && <Text variant="muted">Nothing extra — you’re all set.</Text>}
           {missing.length > 0 && (
             <>
-              <Separator className="my-1" />
-              <Text className="text-xs font-black uppercase tracking-widest text-primary">You need</Text>
-              {missing.map((item) => (
-                <View className="flex-row items-center gap-2" key={`need-${item.name}`}>
+              {missing.map((item, index) => (
+                <View className="flex-row items-center gap-2" key={`need-${index}-${item.name}`}>
                   <Badge variant="outline">
                     <Text className="text-primary">+</Text>
                   </Badge>
@@ -126,7 +149,7 @@ export default function RecipeScreen() {
         <Text className="mt-1 text-2xl font-extrabold">Method</Text>
         <View className="gap-3">
           {recipe.steps.map((step, index) => (
-            <View className="flex-row items-start gap-3" key={`${index}-${step}`}>
+            <View className="flex-row items-start gap-3" key={`${index}-${step}`} testID="method-step">
               <Badge variant="secondary">
                 <Text>{index + 1}</Text>
               </Badge>
@@ -139,6 +162,23 @@ export default function RecipeScreen() {
           <Button onPress={() => void getGroceries()} disabled={groceryLoading} className="mt-1">
             <Text>{groceryLoading ? 'Preparing list…' : 'Get groceries'}</Text>
           </Button>
+        )}
+        <ErrorNotice title="Could not make a shopping list" message={groceryError} />
+        {groceryUrl && (
+          <Card className="gap-3 rounded-2xl p-4">
+            <Text className="text-lg font-extrabold">Your Instacart list is ready</Text>
+            <Button variant="outline" onPress={() => void openGroceryUrl(groceryUrl)}>
+              <Text>Open Instacart list</Text>
+            </Button>
+          </Card>
+        )}
+        {shoppingList && (
+          <Card className="gap-2 rounded-2xl p-4">
+            <Text className="text-lg font-extrabold">Shopping list</Text>
+            <Text selectable testID="shopping-list" className="text-sm leading-5 text-muted-foreground">
+              {shoppingList}
+            </Text>
+          </Card>
         )}
       </ScrollView>
     </SafeAreaView>

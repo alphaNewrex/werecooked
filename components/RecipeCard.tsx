@@ -14,7 +14,7 @@ export function RecipeCard({
 }) {
   const haveCount = recipe.ingredients.filter((ingredient) => ingredient.haveIt).length;
   return (
-    <Pressable onPress={onPress}>
+    <Pressable role="button" onPress={onPress}>
       <Card className="gap-2 rounded-2xl p-4">
         <View className="flex-row items-center justify-between gap-2">
           <Badge variant="secondary">

@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
+import { Alert, Platform, SafeAreaView, ScrollView, View } from 'react-native';
 
+import { ErrorNotice } from '@/components/ErrorNotice';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -25,6 +26,8 @@ export default function PantryScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detected, setDetected] = useState<DetectedItem[]>([]);
   const [scanning, setScanning] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   function resetForm() {
     setName('');
@@ -35,9 +38,11 @@ export default function PantryScreen() {
 
   function saveItem() {
     if (!name.trim()) {
+      setFormError('Give your pantry item a name first.');
       Alert.alert('Add an ingredient', 'Give your pantry item a name first.');
       return;
     }
+    setFormError(null);
     const input = {
       name: name.trim(),
       quantity: quantity.trim() || undefined,
@@ -59,10 +64,12 @@ export default function PantryScreen() {
   }
 
   async function pickAndScan(source: 'camera' | 'library') {
+    setScanError(null);
     try {
       if (source === 'camera') {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
+          setScanError('Allow camera access to scan your pantry.');
           Alert.alert('Camera permission needed', 'Allow camera access to scan your pantry.');
           return;
         }
@@ -90,12 +97,31 @@ export default function PantryScreen() {
         imageBase64: asset.base64,
         mimeType: asset.mimeType ?? 'image/jpeg',
       });
+      if (response.items.length === 0) {
+        setScanError('We couldn’t spot any food in that photo. Try a clearer shot.');
+      }
       setDetected(response.items.map((item) => ({ ...item, selected: true })));
     } catch (error) {
-      Alert.alert('Scan failed', error instanceof Error ? error.message : 'Try another photo.');
+      const message = error instanceof Error ? error.message : 'Try another photo.';
+      setScanError(message);
+      Alert.alert('Scan failed', message);
     } finally {
       setScanning(false);
     }
+  }
+
+  function confirmRemove(item: (typeof items)[number]) {
+    if (Platform.OS === 'web') {
+      // Alert buttons are not supported by React Native Web.
+      if (globalThis.confirm?.(`Remove ${item.name} from your pantry?`) ?? true) {
+        removeItem(item.id);
+      }
+      return;
+    }
+    Alert.alert('Remove item?', `Remove ${item.name} from your pantry?`, [
+      { text: 'Keep' },
+      { text: 'Remove', style: 'destructive', onPress: () => removeItem(item.id) },
+    ]);
   }
 
   function addDetected() {
@@ -127,15 +153,24 @@ export default function PantryScreen() {
             </Text>
           </View>
           <View className="flex-row gap-2">
-            <Button variant="secondary" size="sm" onPress={() => void pickAndScan('camera')}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={scanning}
+              onPress={() => void pickAndScan('camera')}>
               <Text>Camera</Text>
             </Button>
-            <Button variant="outline" size="sm" onPress={() => void pickAndScan('library')}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={scanning}
+              onPress={() => void pickAndScan('library')}>
               <Text>Photo library</Text>
             </Button>
           </View>
-          {scanning && <Text className="text-sm text-primary-foreground">Reading your photo…</Text>}
+          {scanning && <Text className="text-sm text-background">Reading your photo…</Text>}
         </Card>
+        <ErrorNotice title="Scan failed" message={scanError} />
 
         {detected.length > 0 && (
           <Card className="gap-3 rounded-2xl p-4">
@@ -187,6 +222,7 @@ export default function PantryScreen() {
               className="flex-1 bg-muted"
             />
           </View>
+          <ErrorNotice title="Add an ingredient" message={formError} />
           <View className="flex-row items-center gap-2">
             <Button onPress={saveItem}>
               <Text>{editingId ? 'Save changes' : 'Add to pantry'}</Text>
@@ -201,7 +237,9 @@ export default function PantryScreen() {
 
         <View className="mt-2 flex-row items-baseline justify-between">
           <Text className="text-2xl font-extrabold">In your pantry</Text>
-          <Text variant="muted">{hydrated ? `${items.length} items` : 'Loading…'}</Text>
+          <Text variant="muted" testID="pantry-count">
+            {hydrated ? `${items.length} ${items.length === 1 ? 'item' : 'items'}` : 'Loading…'}
+          </Text>
         </View>
         {items.length === 0 && hydrated ? (
           <Text className="rounded-xl bg-card p-5 leading-5 text-muted-foreground">
@@ -234,12 +272,8 @@ export default function PantryScreen() {
                 variant="destructive"
                 size="icon"
                 className="h-8 w-8"
-                onPress={() =>
-                  Alert.alert('Remove item?', `Remove ${item.name} from your pantry?`, [
-                    { text: 'Keep' },
-                    { text: 'Remove', style: 'destructive', onPress: () => removeItem(item.id) },
-                  ])
-                }>
+                aria-label={`Remove ${item.name}`}
+                onPress={() => confirmRemove(item)}>
                 <Text className="text-lg text-white">×</Text>
               </Button>
             </Card>

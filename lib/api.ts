@@ -25,7 +25,7 @@ export async function postJson<T>(path: string, body: unknown): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const data = (await response.json()) as T | { message?: string };
+  const data = (await response.json().catch(() => ({}))) as T | { message?: string };
   if (!response.ok) {
     const body = data as Record<string, unknown>;
     throw new ApiError(

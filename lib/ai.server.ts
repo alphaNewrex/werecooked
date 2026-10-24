@@ -12,12 +12,31 @@ const registry = createProviderRegistry({
   }),
 });
 
-const azure = createAzure({
-  apiKey: process.env.AZURE_API_KEY,
-  ...(process.env.AZURE_BASE_URL
-    ? { baseURL: process.env.AZURE_BASE_URL }
-    : { resourceName: process.env.AZURE_RESOURCE_NAME }),
-});
+// Foundry *project* endpoints (https://<res>.services.ai.azure.com/api/projects/<name>)
+// reject OpenAI-compatible chat calls without an api-version. The resource's
+// versioned OpenAI v1 endpoint serves the same deployments without one.
+function azureBaseUrl(raw: string | undefined) {
+  if (!raw) {
+    return undefined;
+  }
+  try {
+    const url = new URL(raw);
+    if (url.hostname.endsWith('.services.ai.azure.com') && url.pathname.startsWith('/api/projects/')) {
+      return `${url.origin}/openai/v1`;
+    }
+  } catch {
+    // Let the Azure provider report malformed URLs.
+  }
+  return raw;
+}
+
+function createAzureProvider() {
+  const baseURL = azureBaseUrl(process.env.AZURE_BASE_URL);
+  return createAzure({
+    apiKey: process.env.AZURE_API_KEY,
+    ...(baseURL ? { baseURL } : { resourceName: process.env.AZURE_RESOURCE_NAME }),
+  });
+}
 
 export function getAiModel() {
   const configuredModel = process.env.AI_MODEL;
@@ -58,7 +77,7 @@ export function getAiModel() {
           `${configuredModel}.`,
       );
     }
-    return azure.chat(modelId);
+    return createAzureProvider().chat(modelId);
   }
 
   return registry.languageModel(

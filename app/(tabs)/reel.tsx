@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
 
+import { ErrorNotice } from '@/components/ErrorNotice';
 import { RecipeCard } from '@/components/RecipeCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,6 +23,7 @@ export default function ReelScreen() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [sourceNotes, setSourceNotes] = useState('');
   const [linkInput, setLinkInput] = useState('');
+  const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const processedLink = useRef<string | null>(null);
   const incomingUrl = Array.isArray(url) ? url[0] : url;
   const shortcutLink = Linking.createURL('reel');
@@ -30,10 +32,15 @@ export default function ReelScreen() {
     async (reelUrl: string) => {
       const trimmedUrl = reelUrl.trim();
       if (!trimmedUrl) {
+        setError({
+          title: 'Paste a reel link',
+          message: 'Add a public Instagram URL to read its caption.',
+        });
         Alert.alert('Paste a reel link', 'Add a public Instagram URL to read its caption.');
         return;
       }
       setLoading(true);
+      setError(null);
       try {
         const response = await postJson<{ recipe: Recipe; sourceNotes: string }>('/api/reel-link', {
           url: trimmedUrl,
@@ -43,15 +50,18 @@ export default function ReelScreen() {
         setSourceNotes(response.sourceNotes);
       } catch (error) {
         if (error instanceof ApiError && error.needScreenshot) {
+          setError({
+            title: "Couldn't read this reel's caption",
+            message: 'Add a screenshot instead and we’ll read the text from the image.',
+          });
           Alert.alert(
             "Couldn't read this reel's caption",
             'Add a screenshot instead and we’ll read the text from the image.',
           );
         } else {
-          Alert.alert(
-            'Could not read this reel',
-            error instanceof Error ? error.message : 'Try another link.',
-          );
+          const message = error instanceof Error ? error.message : 'Try another link.';
+          setError({ title: 'Could not read this reel', message });
+          Alert.alert('Could not read this reel', message);
         }
       } finally {
         setLoading(false);
@@ -69,6 +79,7 @@ export default function ReelScreen() {
   }, [hydrated, incomingUrl, readReelLink]);
 
   async function readScreenshot() {
+    setError(null);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -88,7 +99,9 @@ export default function ReelScreen() {
       setRecipe(response.recipe);
       setSourceNotes(response.sourceNotes);
     } catch (error) {
-      Alert.alert('Could not read this reel', error instanceof Error ? error.message : 'Try another screenshot.');
+      const message = error instanceof Error ? error.message : 'Try another screenshot.';
+      setError({ title: 'Could not read this reel', message });
+      Alert.alert('Could not read this reel', message);
     } finally {
       setLoading(false);
     }
@@ -137,7 +150,9 @@ export default function ReelScreen() {
           <Button variant="secondary" onPress={() => void readScreenshot()} disabled={loading}>
             <Text>Choose screenshot</Text>
           </Button>
+          {loading && <Text className="text-sm text-background">Reading your reel…</Text>}
         </Card>
+        <ErrorNotice title={error?.title ?? ''} message={error?.message ?? null} />
         {recipe && (
           <View className="mt-2 gap-3">
             <View className="flex-row items-baseline justify-between">

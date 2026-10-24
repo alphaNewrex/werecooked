@@ -3,7 +3,7 @@ import { generateObject } from 'ai';
 import { getAiModel } from '@/lib/ai.server';
 import { fetchReelCaption, extractShortcode } from '@/lib/instagram.server';
 import { reelInstructions } from '@/lib/reel.server';
-import { ReelLinkRequestSchema, ReelResponseSchema } from '@/lib/schemas';
+import { ReelLinkAiSchema, ReelLinkRequestSchema, ReelResponseSchema } from '@/lib/schemas';
 
 function errorResponse(error: unknown, status = 500, extra?: Record<string, unknown>) {
   return Response.json(
@@ -38,13 +38,23 @@ export async function POST(request: Request) {
 
     const result = await generateObject({
       model: getAiModel(),
-      schema: ReelResponseSchema,
+      schema: ReelLinkAiSchema,
       schemaName: 'ReelLinkRecipe',
-      prompt: reelInstructions(input.data.pantry, caption.caption),
+      prompt: `${reelInstructions(input.data.pantry, caption.caption)}
+
+Set captionDescribesRecipe=true only if the caption itself names a specific dish or lists ingredients. If it does not (for example, it is only a greeting, a trend reference, or hashtags without food), set captionDescribesRecipe=false and do not invent a dish from the pantry; still return a minimal placeholder recipe.`,
     });
+    const { captionDescribesRecipe, ...reel } = result.object;
+    if (!captionDescribesRecipe) {
+      return errorResponse(
+        new Error("This reel's caption doesn't describe a recipe — add a screenshot instead."),
+        422,
+        { needScreenshot: true },
+      );
+    }
     return Response.json({
-      ...result.object,
-      sourceNotes: `From Instagram caption (${caption.source}). ${result.object.sourceNotes}`,
+      ...ReelResponseSchema.parse(reel),
+      sourceNotes: `From Instagram caption (${caption.source}). ${reel.sourceNotes}`,
     });
   } catch (error) {
     return errorResponse(error);
