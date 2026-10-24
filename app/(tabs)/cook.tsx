@@ -1,3 +1,4 @@
+import { ChefHat } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
@@ -23,9 +24,7 @@ export default function CookScreen() {
     setLoading(true);
     setError(null);
     try {
-      const response = await postJson<{ recipes: Recipe[] }>('/api/suggest', {
-        pantry: items.map((item) => item.name),
-      });
+      const response = await postJson<{ recipes: Recipe[] }>('/api/suggest', { pantry: items.map((item) => item.name) });
       setRecipes(response.recipes);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try again.';
@@ -38,27 +37,21 @@ export default function CookScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="gap-4 p-5 pb-12"
-        showsVerticalScrollIndicator={false}>
-        <Text className="text-xs font-extrabold tracking-widest text-primary">DINNER, DECIDED</Text>
-        <Text className="text-4xl font-extrabold tracking-tight">What can I make?</Text>
-        <Text className="-mt-2 text-base leading-6 text-muted-foreground">
-          {hydrated
-            ? `${items.length} pantry ${items.length === 1 ? 'item' : 'items'} ready to turn into dinner.`
-            : 'Loading your pantry…'}
+      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-28" showsVerticalScrollIndicator={false}>
+        <Text className="font-display text-5xl leading-[1.05]">What can I make?</Text>
+        <Text className="-mt-2 font-mono text-sm text-muted-foreground">
+          {hydrated ? `${items.length} ingredient${items.length === 1 ? '' : 's'} on hand` : 'Loading pantry…'}
         </Text>
         <Button onPress={() => void suggest()} disabled={loading || !hydrated}>
+          <ChefHat color="#FFFFFF" size={18} />
           <Text>{loading ? 'Thinking…' : 'Suggest recipes'}</Text>
         </Button>
         <ErrorNotice title="Could not find recipes" message={error} />
-
         {recipes.length > 0 && (
-          <View className="mt-2 gap-3">
+          <View className="gap-3">
             <View className="flex-row items-baseline justify-between">
-              <Text className="text-2xl font-extrabold">Best matches</Text>
-              <Text variant="muted">Ranked for you</Text>
+              <Text className="font-display text-2xl">Best matches</Text>
+              <Text className="font-mono text-xs text-muted-foreground">Ranked for you</Text>
             </View>
             {recipes.map((recipe, index) => (
               <RecipeCard
@@ -73,12 +66,9 @@ export default function CookScreen() {
           </View>
         )}
         {!loading && !error && recipes.length === 0 && (
-          <Card className="mt-2 gap-2 rounded-2xl border-0 bg-secondary p-5 shadow-none">
-            <Text className="text-2xl text-primary">✦</Text>
-            <Text className="text-lg font-extrabold">A little inspiration goes a long way.</Text>
-            <Text className="text-sm leading-5 text-secondary-foreground">
-              Add a few pantry staples, then we’ll find three recipes that make the most of them.
-            </Text>
+          <Card className="gap-2 rounded-2xl border-border bg-card p-5 shadow-none">
+            <Text className="font-sans-bold text-lg">Add ingredients, then ask CookFood.</Text>
+            <Text variant="muted">We’ll rank recipes by what you already have.</Text>
           </Card>
         )}
       </ScrollView>

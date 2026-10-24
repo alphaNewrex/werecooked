@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ImagePlus, Link as LinkIcon, Smartphone } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
 
@@ -32,10 +33,7 @@ export default function ReelScreen() {
     async (reelUrl: string) => {
       const trimmedUrl = reelUrl.trim();
       if (!trimmedUrl) {
-        setError({
-          title: 'Paste a reel link',
-          message: 'Add a public Instagram URL to read its caption.',
-        });
+        setError({ title: 'Paste a reel link', message: 'Add a public Instagram URL to read its caption.' });
         Alert.alert('Paste a reel link', 'Add a public Instagram URL to read its caption.');
         return;
       }
@@ -50,14 +48,9 @@ export default function ReelScreen() {
         setSourceNotes(response.sourceNotes);
       } catch (error) {
         if (error instanceof ApiError && error.needScreenshot) {
-          setError({
-            title: "Couldn't read this reel's caption",
-            message: 'Add a screenshot instead and we’ll read the text from the image.',
-          });
-          Alert.alert(
-            "Couldn't read this reel's caption",
-            'Add a screenshot instead and we’ll read the text from the image.',
-          );
+          const message = 'Add a screenshot instead and we’ll read the text from the image.';
+          setError({ title: "Couldn't read this reel's caption", message });
+          Alert.alert("Couldn't read this reel's caption", message);
         } else {
           const message = error instanceof Error ? error.message : 'Try another link.';
           setError({ title: 'Could not read this reel', message });
@@ -87,9 +80,7 @@ export default function ReelScreen() {
         base64: true,
       });
       const asset = result.canceled ? undefined : result.assets[0];
-      if (!asset?.base64) {
-        return;
-      }
+      if (!asset?.base64) return;
       setLoading(true);
       const response = await postJson<{ recipe: Recipe; sourceNotes: string }>('/api/reel', {
         imageBase64: asset.base64,
@@ -109,68 +100,58 @@ export default function ReelScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="gap-4 p-5 pb-12"
-        showsVerticalScrollIndicator={false}>
-        <Text className="text-xs font-extrabold tracking-widest text-primary">FROM YOUR SAVED FEED</Text>
-        <Text className="text-4xl font-extrabold tracking-tight">Cook the reel</Text>
+      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-28" showsVerticalScrollIndicator={false}>
+        <Text className="font-display text-5xl leading-[1.05]">Cook the reel</Text>
         <Text className="-mt-2 text-base leading-6 text-muted-foreground">
-          Share an Instagram link or upload a screenshot. We’ll turn the clues into a cookable recipe.
+          Paste a link or bring a screenshot. CookFood will pull out the dish.
         </Text>
 
-        <Card className="gap-3 rounded-2xl p-4">
-          <Text className="text-lg font-extrabold">Paste an Instagram link</Text>
-          <Input
-            value={linkInput}
-            onChangeText={setLinkInput}
-            placeholder="https://instagram.com/reel/…"
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            className="bg-muted"
-          />
+        <Card className="gap-3 rounded-2xl border-border bg-card p-4">
+          <Text className="font-sans-bold text-lg">Instagram link</Text>
+          <View className="flex-row items-center rounded-xl border border-input bg-muted px-3">
+            <LinkIcon color="#5E6B62" size={18} />
+            <Input
+              value={linkInput}
+              onChangeText={setLinkInput}
+              placeholder="https://instagram.com/reel/…"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              className="flex-1 border-0 bg-transparent font-sans shadow-none"
+            />
+          </View>
           <Button onPress={() => void readReelLink(linkInput)} disabled={loading}>
+            <LinkIcon color="#FFFFFF" size={17} />
             <Text>{loading ? 'Reading caption…' : 'Read reel link'}</Text>
           </Button>
-          <Text variant="muted" className="mt-1 text-xs font-bold uppercase tracking-widest">
-            Shortcut link
-          </Text>
-          <Text selectable variant="muted" className="text-xs">
-            {shortcutLink}
-          </Text>
+          <Text className="mt-1 font-mono-medium text-xs uppercase tracking-widest text-muted-foreground">Shortcut link</Text>
+          <Text selectable className="font-mono text-xs text-muted-foreground">{shortcutLink}</Text>
         </Card>
 
-        <Card className="gap-3 rounded-2xl border-0 bg-foreground p-5 shadow-none">
-          <Text className="text-3xl text-primary-foreground">▧</Text>
-          <Text className="text-xl font-extrabold text-background">Have a recipe screenshot?</Text>
-          <Text className="text-sm leading-5 text-background/80">
-            If Instagram hides the caption, choose a clear frame with the caption or ingredient text visible.
+        <Card className="min-h-[330px] items-center justify-center gap-4 rounded-[32px] border-2 border-dashed border-border bg-muted/50 p-7">
+          <Smartphone color="#18201B" size={34} strokeWidth={1.7} />
+          <ImagePlus color="#F0532F" size={42} strokeWidth={1.7} />
+          <Text className="font-display text-2xl text-center">Have a recipe screenshot?</Text>
+          <Text variant="muted" className="text-center leading-5">
+            Choose a clear frame with the caption or ingredient text visible.
           </Text>
           <Button variant="secondary" onPress={() => void readScreenshot()} disabled={loading}>
+            <ImagePlus color="#18201B" size={17} />
             <Text>Choose screenshot</Text>
           </Button>
-          {loading && <Text className="text-sm text-background">Reading your reel…</Text>}
+          {loading && <Text className="font-mono text-xs text-muted-foreground">Reading your reel…</Text>}
         </Card>
         <ErrorNotice title={error?.title ?? ''} message={error?.message ?? null} />
         {recipe && (
-          <View className="mt-2 gap-3">
+          <View className="gap-3">
             <View className="flex-row items-baseline justify-between">
-              <Text className="text-2xl font-extrabold">Here’s the dish</Text>
+              <Text className="font-display text-2xl">Here’s the dish</Text>
               <Text variant="muted">Compared with your pantry</Text>
             </View>
-            <RecipeCard
-              recipe={recipe}
-              onPress={() => {
-                setCurrentRecipe(recipe);
-                router.push('/recipe');
-              }}
-            />
-            <Card className="gap-1 rounded-xl border-0 bg-secondary p-4 shadow-none">
-              <Text className="text-xs font-extrabold uppercase tracking-widest text-secondary-foreground">
-                What we could read
-              </Text>
-              <Text className="text-sm leading-5 text-secondary-foreground">{sourceNotes}</Text>
+            <RecipeCard recipe={recipe} onPress={() => { setCurrentRecipe(recipe); router.push('/recipe'); }} />
+            <Card className="gap-1 rounded-xl border-leaf-soft bg-leaf-soft p-4 shadow-none">
+              <Text className="font-mono-medium text-xs uppercase tracking-widest text-leaf">What we could read</Text>
+              <Text className="leading-5 text-foreground">{sourceNotes}</Text>
             </Card>
           </View>
         )}

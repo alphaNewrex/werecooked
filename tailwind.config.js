@@ -8,6 +8,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        leaf: '#2F8F4E',
+        'leaf-soft': '#DCEFE2',
+        tomato: '#F0532F',
+        'tomato-soft': '#FDE3DC',
+        butter: '#F6D25C',
+        'butter-soft': '#FCF3CF',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -41,6 +47,15 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+      },
+      fontFamily: {
+        display: ['BricolageGrotesque_800ExtraBold'],
+        'display-bold': ['BricolageGrotesque_700Bold'],
+        sans: ['DMSans_400Regular'],
+        'sans-medium': ['DMSans_500Medium'],
+        'sans-bold': ['DMSans_700Bold'],
+        mono: ['IBMPlexMono_400Regular'],
+        'mono-medium': ['IBMPlexMono_500Medium'],
       },
       borderRadius: {
         lg: 'var(--radius)',

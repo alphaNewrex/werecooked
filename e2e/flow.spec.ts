@@ -95,15 +95,16 @@ test('manual pantry, cook, grocery, and reel flows', async ({ page }) => {
   await expect(page.getByTestId('pantry-count')).toHaveText('4 items');
 
   // USDA macros are enriched silently in the background.
+  await page.getByText('eggs', { exact: true }).first().click();
   await expect(page.getByText(/\d+ kcal · P \d/).first()).toBeVisible({ timeout: 30_000 });
 
   // Photo scan -> review -> add.
   const countBeforeScan = await pantryCount(page);
-  await uploadWithPicker(page, 'Photo library', 'pantry-photo.jpg');
+  await uploadWithPicker(page, 'Upload a photo', 'pantry-photo.jpg');
   await expect(page.getByText('Reading your photo…')).toBeVisible();
-  await waitForResultOrError(page, page.getByText('Review detected items', { exact: true }));
+  await waitForResultOrError(page, page.getByText(/Found \d+ items/).first());
   await page.getByRole('button', { name: 'Add selected to pantry', exact: true }).click();
-  await expect(page.getByText('Review detected items', { exact: true })).toBeHidden();
+  await expect(page.getByText(/Found \d+ items/).first()).toBeHidden();
   await expect.poll(() => pantryCount(page)).toBeGreaterThan(countBeforeScan);
   console.log(`Pantry count: ${countBeforeScan} -> ${await pantryCount(page)} after scan`);
 
@@ -127,12 +128,17 @@ test('manual pantry, cook, grocery, and reel flows', async ({ page }) => {
   await expect(page.getByText('You need', { exact: true })).toBeVisible();
   await expect(page.getByText('Method', { exact: true })).toBeVisible();
   await expect(page.getByTestId('method-step').first()).toBeVisible();
-  if (krogerConfigured()) {
+  const allHave = page.getByText('Nothing extra — you’re all set.', { exact: true });
+  if (await allHave.isVisible()) {
+    await expect(page.getByTestId('kroger-price')).toHaveCount(0);
+  } else if (krogerConfigured()) {
     await expect(page.getByTestId('kroger-price').first()).toBeVisible();
     await expect(page.getByTestId('kroger-store')).toBeVisible();
   } else {
-    await expect(page.getByText(/est\./).filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByTestId('kroger-price')).toHaveCount(0);
+    if (!(await allHave.isVisible())) {
+      await expect(page.getByText(/est\./).filter({ visible: true }).first()).toBeVisible();
+    }
   }
 
   // Grocery handoff: Instacart URL via Linking.openURL, or the inline shopping-list fallback.
