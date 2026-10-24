@@ -22,7 +22,7 @@ import type { Recipe } from '@/lib/types';
 export default function ReelScreen() {
   const router = useRouter();
   const { url } = useLocalSearchParams<{ url?: string | string[] }>();
-  const { items } = usePantry();
+  const { items, hydrated } = usePantry();
   const [loading, setLoading] = useState(false);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [sourceNotes, setSourceNotes] = useState('');
@@ -66,12 +66,12 @@ export default function ReelScreen() {
   );
 
   useEffect(() => {
-    if (incomingUrl && incomingUrl !== processedLink.current) {
+    if (hydrated && incomingUrl && incomingUrl !== processedLink.current) {
       processedLink.current = incomingUrl;
       setLinkInput(incomingUrl);
       void readReelLink(incomingUrl);
     }
-  }, [incomingUrl, readReelLink]);
+  }, [hydrated, incomingUrl, readReelLink]);
 
   async function readScreenshot() {
     try {
