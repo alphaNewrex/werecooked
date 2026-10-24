@@ -137,7 +137,7 @@ export default function PantryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-32" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-52" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <Text className="font-display text-5xl leading-[1.05]">Pantry</Text>
           <Text testID="pantry-count" className="font-mono-medium text-sm text-muted-foreground">
