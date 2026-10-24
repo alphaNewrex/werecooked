@@ -215,6 +215,12 @@ export default function PantryScreen() {
                 <Text variant="muted">
                   {[item.quantity, item.category].filter(Boolean).join(' · ') || 'No details'}
                 </Text>
+                {item.macros && (
+                  <Text variant="muted" className="text-xs">
+                    {item.macros.kcal.toFixed(0)} kcal · P {item.macros.proteinG.toFixed(1)}g · C{' '}
+                    {item.macros.carbsG.toFixed(1)}g · F {item.macros.fatG.toFixed(1)}g / 100g
+                  </Text>
+                )}
               </View>
               {item.category && (
                 <Badge variant="secondary">

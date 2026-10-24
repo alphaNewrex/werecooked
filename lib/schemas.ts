@@ -12,7 +12,7 @@ export const RecipeIngredientSchema = z.object({
   name: z.string().min(1),
   amount: z.string().min(1),
   haveIt: z.boolean(),
-  estPriceUsd: z.number().nonnegative().optional(),
+  estPriceUsd: z.number().nonnegative().nullable(),
 });
 
 export const RecipeSchema = z.object({
@@ -26,6 +26,10 @@ export const RecipeSchema = z.object({
 
 export const PantryNamesRequestSchema = z.object({
   pantry: z.array(z.string().min(1)).max(200),
+});
+
+export const NutritionRequestSchema = z.object({
+  names: z.array(z.string().min(1)).max(30),
 });
 
 export const ScanPantryRequestSchema = z.object({
@@ -56,14 +60,14 @@ export const ScanPantryResponseSchema = z.object({
   items: z.array(
     z.object({
       name: z.string().min(1),
-      quantity: z.string().optional(),
-      category: z.string().optional(),
+      quantity: z.string().nullable(),
+      category: z.string().nullable(),
     }),
   ),
 });
 
 export const SuggestResponseSchema = z.object({
-  recipes: z.array(RecipeSchema).length(3),
+  recipes: z.array(RecipeSchema).min(1).max(3),
 });
 
 export const ReelResponseSchema = z.object({

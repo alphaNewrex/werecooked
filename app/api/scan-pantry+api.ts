@@ -28,11 +28,17 @@ export async function POST(request: Request) {
         imagePrompt(
           input.data.imageBase64,
           input.data.mimeType,
-          'Identify each visible food or pantry item. Return practical names, an optional quantity, and a broad category. Do not include cookware, packaging, or text that is not an ingredient.',
+        'Identify each visible food or pantry item. Return clean generic ingredient names (for example, "greek yogurt" rather than a brand and size). Put brand, package size, or count in quantity, and include a broad category. Do not include cookware, packaging, or text that is not an ingredient.',
         ),
       ],
     });
-    return Response.json(result.object);
+    return Response.json({
+      items: result.object.items.map(({ quantity, category, ...item }) => ({
+        ...item,
+        ...(quantity ? { quantity } : {}),
+        ...(category ? { category } : {}),
+      })),
+    });
   } catch (error) {
     return errorResponse(error);
   }

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { postJson } from './api';
 import type { PantryItem } from './types';
 
 const STORAGE_KEY = 'cookfood.pantry';
@@ -36,31 +37,61 @@ export function PantryProvider({ children }: { children: React.ReactNode }) {
     }
   }, [hydrated, items]);
 
+  const enrichItems = useCallback((newItems: PantryItem[]) => {
+    void postJson<{
+      results: Array<{ name: string; macros: PantryItem['macros'] | null }>;
+    }>('/api/nutrition', {
+      names: newItems.map((item) => item.name),
+    })
+      .then(({ results }) => {
+        const macrosByName = new Map(
+          results.map((result) => [result.name.trim().toLowerCase(), result.macros]),
+        );
+        setItems((current) =>
+          current.map((item) => {
+            if (!newItems.some((newItem) => newItem.id === item.id)) {
+              return item;
+            }
+            const macros = macrosByName.get(item.name.trim().toLowerCase());
+            return macrosByName.has(item.name.trim().toLowerCase())
+              ? { ...item, macros: macros ?? undefined }
+              : item;
+          }),
+        );
+      })
+      .catch(() => undefined);
+  }, []);
+
   const value = useMemo<PantryContextValue>(
     () => ({
       items,
       hydrated,
-      addItem: (input) =>
-        setItems((current) => [
-          ...current,
-          { ...input, id: `${Date.now()}-${Math.random()}`, addedAt: Date.now() },
-        ]),
-      updateItem: (id, input) =>
+      addItem: (input) => {
+        const item = { ...input, id: `${Date.now()}-${Math.random()}`, addedAt: Date.now() };
+        setItems((current) => [...current, item]);
+        enrichItems([item]);
+      },
+      updateItem: (id, input) => {
+        const existing = items.find((item) => item.id === id);
         setItems((current) =>
           current.map((item) => (item.id === id ? { ...item, ...input } : item)),
-        ),
+        );
+        if (existing && existing.name.trim().toLowerCase() !== input.name.trim().toLowerCase()) {
+          enrichItems([{ ...existing, ...input }]);
+        }
+      },
       removeItem: (id) => setItems((current) => current.filter((item) => item.id !== id)),
-      addMany: (newItems) =>
-        setItems((current) => [
-          ...current,
-          ...newItems.map((input, index) => ({
-            ...input,
-            id: `${Date.now()}-${index}-${Math.random()}`,
-            addedAt: Date.now(),
-          })),
-        ]),
+      addMany: (newItems) => {
+        const createdItems = newItems.map((input, index) => ({
+          ...input,
+          id: `${Date.now()}-${index}-${Math.random()}`,
+          addedAt: Date.now(),
+        }));
+        setItems((current) => [...current, ...createdItems]);
+        enrichItems(createdItems);
+      },
     }),
-    [hydrated, items],
+    [enrichItems, hydrated, items],
   );
 
   return <PantryContext.Provider value={value}>{children}</PantryContext.Provider>;

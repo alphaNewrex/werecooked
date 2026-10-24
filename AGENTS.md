@@ -9,9 +9,10 @@ CookFood is a hackathon MVP Expo app that turns a pantry or a saved cooking-reel
 - `app/(tabs)/reel.tsx`: screenshot upload and reel recipe extraction.
 - `app/recipe.tsx`: shared recipe detail, missing-item estimates, and grocery sharing.
 - `app/api/*+api.ts`: server-side scan, suggestion, reel, and Instacart routes.
+- `app/api/nutrition+api.ts`: server-only USDA FoodData Central macro lookup.
 - `lib/ai.server.ts`: server-only AI provider registry and model selection.
 - `lib/schemas.ts`: shared Zod request/response and AI object schemas.
-- `lib/pantry.tsx`: `PantryProvider`/`usePantry` with AsyncStorage persistence.
+- `lib/pantry.tsx`: `PantryProvider`/`usePantry` with AsyncStorage persistence and silent USDA macro enrichment after pantry writes.
 - `lib/api.ts`: one native-safe JSON POST helper; set `EXPO_PUBLIC_API_URL` when relative routes are not reachable from a physical device.
 
 ## Share from Instagram
@@ -30,6 +31,7 @@ CookFood runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shor
 - `AZURE_BASE_URL`: optional Azure endpoint override; it wins over `AZURE_RESOURCE_NAME`. Azure deployments must support vision/image input and structured JSON output because pantry scans and reel screenshots use both.
 - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`: alternative provider keys; only the provider selected by `AI_MODEL` is required.
 - `INSTACART_API_KEY`: optional; without it, grocery-link returns `{ "url": null }` and the app shares a plain shopping list.
+- `USDA_API_KEY`: optional FoodData Central API key for pantry macros; without it the app uses the heavily rate-limited `DEMO_KEY`. Get a key at https://fdc.nal.usda.gov/api-key-signup.
 - `EXPO_PUBLIC_API_URL`: optional native client API origin, for example a LAN URL to the Expo Router server.
 
 Keep local `.env` files out of git. The server returns clear JSON errors when AI configuration is missing.
