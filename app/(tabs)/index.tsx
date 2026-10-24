@@ -63,6 +63,7 @@ export default function PantryScreen() {
     if (editingId) updateItem(editingId, input);
     else addItem(input);
     resetForm();
+    setFormOpen(false);
   }
 
   function editItem(item: (typeof items)[number]) {
@@ -239,7 +240,7 @@ export default function PantryScreen() {
         )}
       </ScrollView>
 
-      <View className="absolute bottom-3 left-5 right-5 flex-row items-end justify-between">
+      <View pointerEvents="box-none" className="absolute bottom-20 left-5 right-5 flex-row items-end justify-between">
         <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Add item" onPress={() => { setEditingId(null); setFormOpen(true); }}>
           <Plus color="#18201B" size={21} />
         </Button>
