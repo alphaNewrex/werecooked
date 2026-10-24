@@ -58,7 +58,7 @@ export default function CookScreen() {
                 key={`${index}-${recipe.title}`}
                 recipe={recipe}
                 onPress={() => {
-                  setCurrentRecipe(recipe);
+                  setCurrentRecipe({ recipe, source: { kind: 'suggestion' } });
                   router.push('/recipe');
                 }}
               />

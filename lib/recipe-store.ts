@@ -1,9 +1,16 @@
-import type { Recipe } from './types';
+import type { RecipeSource, Recipe } from './types';
 
-let currentRecipe: Recipe | null = null;
+export type CurrentRecipe = {
+  recipe: Recipe;
+  source: RecipeSource;
+  entryId?: string;
+  collection?: 'incoming' | 'cookbook';
+};
 
-export function setCurrentRecipe(recipe: Recipe) {
-  currentRecipe = recipe;
+let currentRecipe: CurrentRecipe | null = null;
+
+export function setCurrentRecipe(value: CurrentRecipe) {
+  currentRecipe = value;
 }
 
 export function getCurrentRecipe() {

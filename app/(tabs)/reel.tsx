@@ -12,18 +12,23 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { ApiError, postJson } from '@/lib/api';
+import { useLibrary } from '@/lib/library';
 import { usePantry } from '@/lib/pantry';
 import { setCurrentRecipe } from '@/lib/recipe-store';
-import type { Recipe } from '@/lib/types';
+import type { LibraryEntry, Recipe } from '@/lib/types';
 
 export default function ReelScreen() {
   const router = useRouter();
   const { url } = useLocalSearchParams<{ url?: string | string[] }>();
   const { items, hydrated } = usePantry();
+  const { addIncoming, findIncomingByUrl, hydrated: libraryHydrated } = useLibrary();
   const [loading, setLoading] = useState(false);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [sourceNotes, setSourceNotes] = useState('');
+  const [entry, setEntry] = useState<LibraryEntry | null>(null);
+  const [addedToIncoming, setAddedToIncoming] = useState(false);
   const [linkInput, setLinkInput] = useState('');
+  const linkInputRef = useRef('');
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const processedLink = useRef<string | null>(null);
   const incomingUrl = Array.isArray(url) ? url[0] : url;
@@ -40,12 +45,28 @@ export default function ReelScreen() {
       setLoading(true);
       setError(null);
       try {
+        const existing = findIncomingByUrl(trimmedUrl);
+        if (existing) {
+          const bumped = addIncoming(existing.recipe, existing.source);
+          setEntry(bumped);
+          setRecipe(bumped.recipe);
+          setSourceNotes(bumped.source.notes ?? '');
+          setAddedToIncoming(true);
+          return;
+        }
         const response = await postJson<{ recipe: Recipe; sourceNotes: string }>('/api/reel-link', {
           url: trimmedUrl,
           pantry: items.map((item) => item.name),
         });
-        setRecipe(response.recipe);
+        const incoming = addIncoming(response.recipe, {
+          kind: 'reel-link',
+          url: trimmedUrl,
+          notes: response.sourceNotes,
+        });
+        setEntry(incoming);
+        setRecipe(incoming.recipe);
         setSourceNotes(response.sourceNotes);
+        setAddedToIncoming(true);
       } catch (error) {
         if (error instanceof ApiError && error.needScreenshot) {
           const message = 'Add a screenshot instead and we’ll read the text from the image.';
@@ -60,16 +81,17 @@ export default function ReelScreen() {
         setLoading(false);
       }
     },
-    [items],
+    [addIncoming, findIncomingByUrl, items],
   );
 
   useEffect(() => {
-    if (hydrated && incomingUrl && incomingUrl !== processedLink.current) {
+    if (hydrated && libraryHydrated && incomingUrl && incomingUrl !== processedLink.current) {
       processedLink.current = incomingUrl;
       setLinkInput(incomingUrl);
+      linkInputRef.current = incomingUrl;
       void readReelLink(incomingUrl);
     }
-  }, [hydrated, incomingUrl, readReelLink]);
+  }, [hydrated, incomingUrl, libraryHydrated, readReelLink]);
 
   async function readScreenshot() {
     setError(null);
@@ -87,8 +109,14 @@ export default function ReelScreen() {
         mimeType: asset.mimeType ?? 'image/jpeg',
         pantry: items.map((item) => item.name),
       });
-      setRecipe(response.recipe);
+      const incoming = addIncoming(response.recipe, {
+        kind: 'reel-screenshot',
+        notes: response.sourceNotes,
+      });
+      setEntry(incoming);
+      setRecipe(incoming.recipe);
       setSourceNotes(response.sourceNotes);
+      setAddedToIncoming(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try another screenshot.';
       setError({ title: 'Could not read this reel', message });
@@ -112,7 +140,10 @@ export default function ReelScreen() {
             <LinkIcon color="#5E6B62" size={18} />
             <Input
               value={linkInput}
-              onChangeText={setLinkInput}
+              onChangeText={(value) => {
+                linkInputRef.current = value;
+                setLinkInput(value);
+              }}
               placeholder="https://instagram.com/reel/…"
               autoCapitalize="none"
               autoCorrect={false}
@@ -120,7 +151,7 @@ export default function ReelScreen() {
               className="flex-1 border-0 bg-transparent font-sans shadow-none"
             />
           </View>
-          <Button onPress={() => void readReelLink(linkInput)} disabled={loading}>
+          <Button onPress={() => void readReelLink(linkInputRef.current || linkInput)} disabled={loading}>
             <LinkIcon color="#FFFFFF" size={17} />
             <Text>{loading ? 'Reading caption…' : 'Read reel link'}</Text>
           </Button>
@@ -148,7 +179,24 @@ export default function ReelScreen() {
               <Text className="font-display text-2xl">Here’s the dish</Text>
               <Text variant="muted">Compared with your pantry</Text>
             </View>
-            <RecipeCard recipe={recipe} onPress={() => { setCurrentRecipe(recipe); router.push('/recipe'); }} />
+            <RecipeCard
+              recipe={recipe}
+              onPress={() => {
+                if (!entry) return;
+                setCurrentRecipe({
+                  recipe: entry.recipe,
+                  source: entry.source,
+                  entryId: entry.id,
+                  collection: 'incoming',
+                });
+                router.push('/recipe');
+              }}
+            />
+            {addedToIncoming && (
+              <Text className="font-mono text-xs uppercase tracking-widest text-leaf">
+                Added to Incoming
+              </Text>
+            )}
             <Card className="gap-1 rounded-xl border-leaf-soft bg-leaf-soft p-4 shadow-none">
               <Text className="font-mono-medium text-xs uppercase tracking-widest text-leaf">What we could read</Text>
               <Text className="leading-5 text-foreground">{sourceNotes}</Text>

@@ -1,4 +1,4 @@
-import { Clock, Check, ShoppingBasket, Users, Plus, ExternalLink } from 'lucide-react-native';
+import { BookmarkPlus, Check, Clock, ExternalLink, Play, ShoppingBasket } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Linking, Platform, SafeAreaView, ScrollView, Share, View } from 'react-native';
@@ -11,26 +11,40 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
+import { useLibrary } from '@/lib/library';
 import { getCurrentRecipe } from '@/lib/recipe-store';
-import type { KrogerPriceResult, Recipe } from '@/lib/types';
+import type { CurrentRecipe } from '@/lib/recipe-store';
+import type { KrogerPriceResult } from '@/lib/types';
 
 const tornPath =
   'M0 0 L10 10 L20 0 L30 10 L40 0 L50 10 L60 0 L70 10 L80 0 L90 10 L100 0 L110 10 L120 0 L130 10 L140 0 L150 10 L160 0 L170 10 L180 0 L190 10 L200 0 L210 10 L220 0 L230 10 L240 0 L250 10 L260 0 L270 10 L280 0 L290 10 L300 0 L310 10 L320 0 L330 10 L340 0 L350 10 L360 0 L370 10 L380 0 L390 10 V16 H0 Z';
 
 export default function RecipeScreen() {
   const router = useRouter();
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const { hydrated: libraryHydrated, cookbookEntryFor, saveToCookbook } = useLibrary();
+  const [current, setCurrent] = useState<CurrentRecipe | null>(null);
+  const [savedEntry, setSavedEntry] = useState(false);
   const [groceryLoading, setGroceryLoading] = useState(false);
   const [krogerLoading, setKrogerLoading] = useState(false);
   const [krogerPricing, setKrogerPricing] = useState<KrogerPriceResult | null>(null);
   const [groceryUrl, setGroceryUrl] = useState<string | null>(null);
   const [shoppingList, setShoppingList] = useState<string | null>(null);
   const [groceryError, setGroceryError] = useState<string | null>(null);
+  const recipe = current?.recipe ?? null;
+  const isSaved =
+    savedEntry ||
+    (!!current &&
+      libraryHydrated &&
+      !!cookbookEntryFor({
+        originId: current.collection === 'incoming' ? current.entryId : undefined,
+        source: current.source,
+        recipe: current.recipe,
+      }));
 
   useEffect(() => {
     const currentRecipe = getCurrentRecipe();
-    setRecipe(currentRecipe);
-    const missingItems = currentRecipe?.ingredients.filter((ingredient) => !ingredient.haveIt) ?? [];
+    setCurrent(currentRecipe);
+    const missingItems = currentRecipe?.recipe.ingredients.filter((ingredient) => !ingredient.haveIt) ?? [];
     if (missingItems.length === 0) return;
     setKrogerLoading(true);
     void postJson<KrogerPriceResult>('/api/prices', {
@@ -40,6 +54,16 @@ export default function RecipeScreen() {
       .catch(() => undefined)
       .finally(() => setKrogerLoading(false));
   }, []);
+
+  function saveRecipe() {
+    if (!current) return;
+    saveToCookbook({
+      recipe: current.recipe,
+      source: current.source,
+      originId: current.collection === 'incoming' ? current.entryId : undefined,
+    });
+    setSavedEntry(true);
+  }
 
   const missing = useMemo(() => recipe?.ingredients.filter((ingredient) => !ingredient.haveIt) ?? [], [recipe]);
   const krogerMatches = useMemo(
@@ -120,6 +144,12 @@ export default function RecipeScreen() {
         </Text>
         <Text className="font-display text-4xl leading-[1.05]">{recipe.title}</Text>
         <Text className="-mt-2 text-base leading-6 text-muted-foreground">{recipe.description}</Text>
+        {current?.source.notes && (
+          <Card className="gap-2 rounded-2xl border-leaf-soft bg-leaf-soft p-4 shadow-none">
+            <Text className="font-mono-medium text-xs uppercase tracking-widest text-leaf">What we could read</Text>
+            <Text className="leading-5 text-foreground">{current.source.notes}</Text>
+          </Card>
+        )}
 
         <Card className="flex-row items-center gap-3 rounded-2xl border-0 bg-leaf-soft p-4 shadow-none">
           <Text className="font-display text-4xl text-leaf">{have.length}</Text>
@@ -191,6 +221,23 @@ export default function RecipeScreen() {
             <Text selectable testID="shopping-list" className="text-sm leading-5 text-muted-foreground">{shoppingList}</Text>
           </Card>
         )}
+
+        <View className="gap-2">
+          <Button onPress={saveRecipe} disabled={isSaved} variant={isSaved ? 'secondary' : 'outline'}>
+            <BookmarkPlus color={isSaved ? '#2F8F4E' : '#18201B'} size={18} />
+            <Text>{isSaved ? 'Saved to cookbook ✓' : 'Save to cookbook'}</Text>
+          </Button>
+          <Button onPress={() => router.push('/cook-mode')}>
+            <Play color="#FFFFFF" size={17} fill="#FFFFFF" />
+            <Text>Start cooking</Text>
+          </Button>
+          {current?.source.url && (
+            <Button variant="ghost" onPress={() => void Linking.openURL(current.source.url!)}>
+              <ExternalLink color="#5E6B62" size={16} />
+              <Text>Open original reel</Text>
+            </Button>
+          )}
+        </View>
 
         <Text className="font-display text-2xl">Method</Text>
         <View className="gap-3">

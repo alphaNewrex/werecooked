@@ -6,14 +6,18 @@ We're Cooked! (formerly CookFood; internal ids such as the `cookfood` slug/schem
 
 - `app/(tabs)/index.tsx`: pantry CRUD and camera/library scan review.
 - `app/(tabs)/cook.tsx`: pantry-based recipe suggestions.
-- `app/(tabs)/reel.tsx`: screenshot upload and reel recipe extraction.
-- `app/recipe.tsx`: shared recipe detail, missing-item estimates, and grocery sharing.
+- `app/(tabs)/reel.tsx`: screenshot upload, reel recipe extraction, and Incoming deduplication.
+- `app/(tabs)/incoming.tsx` and `app/(tabs)/cookbook.tsx`: persisted reel queue and curated recipe archive.
+- `app/recipe.tsx`: shared recipe detail, library actions, missing-item estimates, and grocery sharing.
+- `app/cook-mode.tsx`: ingredient checklist and one-step-at-a-time cooking mode.
 - `app/api/*+api.ts`: server-side scan, suggestion, reel, and Instacart routes.
 - `app/api/nutrition+api.ts`: server-only USDA FoodData Central macro lookup.
 - `app/api/prices+api.ts` and `lib/kroger.server.ts`: server-only Kroger product search and location pricing; no cart or user OAuth.
 - `lib/ai.server.ts`: server-only AI provider registry and model selection.
 - `lib/schemas.ts`: shared Zod request/response and AI object schemas.
 - `lib/pantry.tsx`: `PantryProvider`/`usePantry` with AsyncStorage persistence and silent USDA macro enrichment after pantry writes.
+- `lib/library.tsx`: `LibraryProvider`/`useLibrary` with independent AsyncStorage-backed Incoming and Cookbook collections.
+- `lib/reel-url.ts`: client-safe Instagram shortcode extraction shared by library deduplication and server caption fetching.
 - `lib/api.ts`: one native-safe JSON POST helper; set `EXPO_PUBLIC_API_URL` when relative routes are not reachable from a physical device.
 
 ## Share from Instagram
@@ -22,7 +26,7 @@ We're Cooked! runs in Expo Go, so the iPhone share-sheet integration uses an iOS
 
 ## Data shapes
 
-`PantryItem` is `{ id: string; name: string; quantity?: string; category?: string; addedAt: number }`. `RecipeIngredient` is `{ name: string; amount: string; haveIt: boolean; estPriceUsd?: number }`, where estimated price is used only for missing ingredients. `Recipe` is `{ title: string; description: string; servings: number; timeMinutes: number; ingredients: RecipeIngredient[]; steps: string[] }`.
+`PantryItem` is `{ id: string; name: string; quantity?: string; category?: string; addedAt: number }`. `RecipeIngredient` is `{ name: string; amount: string; haveIt: boolean; estPriceUsd?: number }`, where estimated price is used only for missing ingredients. `Recipe` is `{ title: string; description: string; servings: number; timeMinutes: number; ingredients: RecipeIngredient[]; steps: string[] }`. `RecipeSource` is `{ kind: 'reel-link' | 'reel-screenshot' | 'suggestion'; url?: string; notes?: string }`; `LibraryEntry` wraps a recipe with its source, `id`, `createdAt`, and optional `originId`.
 
 ## Environment
 

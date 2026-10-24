@@ -18,6 +18,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { LibraryProvider } from '@/lib/library';
 import { PantryProvider } from '@/lib/pantry';
 import { NAV_THEME } from '@/lib/theme';
 import '../global.css';
@@ -57,7 +58,9 @@ export default function RootLayout() {
 
   return (
     <PantryProvider>
-      <RootLayoutNav />
+      <LibraryProvider>
+        <RootLayoutNav />
+      </LibraryProvider>
     </PantryProvider>
   );
 }
@@ -68,6 +71,7 @@ function RootLayoutNav() {
       <Stack screenOptions={{ contentStyle: { backgroundColor: '#F7F8F3' } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="recipe" options={{ title: 'Recipe' }} />
+        <Stack.Screen name="cook-mode" options={{ title: 'Cook mode' }} />
       </Stack>
       <PortalHost />
     </ThemeProvider>

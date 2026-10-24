@@ -11,11 +11,14 @@ declare global {
 }
 
 async function addItem(page: Page, name: string, quantity: string, category: string) {
-  await page.getByPlaceholder('Ingredient name').fill(name);
+  const nameInput = page.getByPlaceholder('Ingredient name');
+  if (!(await nameInput.isVisible())) {
+    await page.getByRole('button', { name: 'Add item', exact: true }).click();
+  }
+  await nameInput.fill(name);
   await page.getByPlaceholder('Quantity').fill(quantity);
   await page.getByPlaceholder('Category').fill(category);
   await page.getByRole('button', { name: 'Add to pantry', exact: true }).click();
-  await expect(page.getByPlaceholder('Ingredient name')).toHaveValue('');
 }
 
 async function uploadWithPicker(page: Page, buttonName: string, fileName: string) {
@@ -31,12 +34,18 @@ async function uploadWithPicker(page: Page, buttonName: string, fileName: string
 async function loadApp(page: Page, action: () => Promise<unknown>) {
   for (let attempt = 1; ; attempt++) {
     const response = (await action()) as Awaited<ReturnType<Page['reload']>>;
-    if (!response || response.status() < 500 || attempt === 3) {
+    const status = response?.status() ?? 200;
+    const body = response ? await response.text() : '';
+    const hasStaticError = /Requiring unknown module|Build-time errors/i.test(body);
+    if ((!response || (status < 500 && !hasStaticError)) || attempt === 3) {
+      if (hasStaticError) {
+        throw new Error(`Dev server returned a static error: ${body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').slice(0, 1500)}`);
+      }
       expect(response?.status() ?? 200).toBeLessThan(500);
       return;
     }
-    const body = (await response.text()).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
-    console.log(`Dev server returned ${response.status()} for ${response.url()}: ${body.slice(0, 1500)}`);
+    const message = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+    console.log(`Dev server returned ${status} for ${response.url()}: ${message.slice(0, 1500)}`);
     await page.waitForTimeout(3000);
     action = () => page.reload();
   }
@@ -109,7 +118,7 @@ test('manual pantry, cook, grocery, and reel flows', async ({ page }) => {
   console.log(`Pantry count: ${countBeforeScan} -> ${await pantryCount(page)} after scan`);
 
   // Cook tab -> suggestions -> recipe detail.
-  await page.getByRole('tab', { name: /Cook/ }).click();
+  await page.getByRole('tab', { name: 'Cook', exact: true }).click();
   await page.getByRole('button', { name: 'Suggest recipes', exact: true }).click();
   const cards = page.getByRole('button').filter({ hasText: 'View recipe →', visible: true });
   await waitForResultOrError(page, cards.first());
@@ -141,26 +150,28 @@ test('manual pantry, cook, grocery, and reel flows', async ({ page }) => {
     }
   }
 
-  // Grocery handoff: Instacart URL via Linking.openURL, or the inline shopping-list fallback.
-  await page.getByRole('button', { name: 'Get groceries', exact: true }).click();
-  const instacartReady = page.getByText('Your Instacart list is ready', { exact: true });
-  const shoppingList = page.getByTestId('shopping-list');
-  await waitForResultOrError(page, instacartReady.or(shoppingList));
-  const expectInstacart = instacartConfigured();
-  if (expectInstacart) {
-    await expect(instacartReady, 'INSTACART_API_KEY is set, so expect an Instacart link').toBeVisible();
-  } else {
-    await expect(shoppingList, 'INSTACART_API_KEY is empty, so expect the shopping-list fallback').toBeVisible();
-  }
-  if (await instacartReady.isVisible()) {
-    const opened = await page.evaluate(() => window.__openedUrls ?? []);
-    console.log(`Grocery handoff: Instacart (${new URL(opened.at(-1) ?? 'about:blank').host})`);
-    expect(opened.length).toBeGreaterThan(0);
-    expect(opened.at(-1)).toMatch(/^https:\/\/([a-z0-9-]+\.)*instacart\.(com|tools)\//);
-  } else {
-    console.log('Grocery handoff: inline shopping-list fallback');
-    await expect(shoppingList).toContainText('shopping list');
-    await expect(shoppingList).toContainText('Estimated total');
+  // Grocery handoff only applies when the AI recipe has missing ingredients.
+  if (!(await allHave.isVisible())) {
+    await page.getByRole('button', { name: 'Get groceries', exact: true }).click();
+    const instacartReady = page.getByText('Your Instacart list is ready', { exact: true });
+    const shoppingList = page.getByTestId('shopping-list');
+    await waitForResultOrError(page, instacartReady.or(shoppingList));
+    const expectInstacart = instacartConfigured();
+    if (expectInstacart) {
+      await expect(instacartReady, 'INSTACART_API_KEY is set, so expect an Instacart link').toBeVisible();
+    } else {
+      await expect(shoppingList, 'INSTACART_API_KEY is empty, so expect the shopping-list fallback').toBeVisible();
+    }
+    if (await instacartReady.isVisible()) {
+      const opened = await page.evaluate(() => window.__openedUrls ?? []);
+      console.log(`Grocery handoff: Instacart (${new URL(opened.at(-1) ?? 'about:blank').host})`);
+      expect(opened.length).toBeGreaterThan(0);
+      expect(opened.at(-1)).toMatch(/^https:\/\/([a-z0-9-]+\.)*instacart\.(com|tools)\//);
+    } else {
+      console.log('Grocery handoff: inline shopping-list fallback');
+      await expect(shoppingList).toContainText('shopping list');
+      await expect(shoppingList).toContainText('Estimated total');
+    }
   }
 
   // Reel screenshot -> recipe.

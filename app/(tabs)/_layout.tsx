@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { ChefHat, Clapperboard, Refrigerator } from 'lucide-react-native';
+import { BookOpen, ChefHat, Clapperboard, Inbox, Refrigerator } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -10,10 +10,11 @@ export default function TabLayout() {
         headerShown: false,
         tabBarLabelStyle: {
           fontFamily: 'DMSans_500Medium',
-          fontSize: 12,
-          lineHeight: 18,
+          fontSize: 10,
+          lineHeight: 16,
           paddingBottom: 2,
         },
+        tabBarItemStyle: { minWidth: 0, paddingHorizontal: 0 },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#D9E1D6',
@@ -41,6 +42,20 @@ export default function TabLayout() {
         options={{
           title: 'Reel',
           tabBarIcon: ({ color }) => <Clapperboard color={color} size={21} strokeWidth={2.2} />,
+        }}
+      />
+      <Tabs.Screen
+        name="incoming"
+        options={{
+          title: 'Incoming',
+          tabBarIcon: ({ color }) => <Inbox color={color} size={21} strokeWidth={2.2} />,
+        }}
+      />
+      <Tabs.Screen
+        name="cookbook"
+        options={{
+          title: 'Cookbook',
+          tabBarIcon: ({ color }) => <BookOpen color={color} size={21} strokeWidth={2.2} />,
         }}
       />
     </Tabs>

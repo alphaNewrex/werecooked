@@ -32,6 +32,20 @@ export type Recipe = {
   steps: string[];
 };
 
+export type RecipeSource = {
+  kind: 'reel-link' | 'reel-screenshot' | 'suggestion';
+  url?: string;
+  notes?: string;
+};
+
+export type LibraryEntry = {
+  id: string;
+  recipe: Recipe;
+  source: RecipeSource;
+  createdAt: number;
+  originId?: string;
+};
+
 export type KrogerStore = {
   locationId: string;
   name: string;
