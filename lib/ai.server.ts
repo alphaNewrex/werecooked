@@ -1,4 +1,5 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createAzure } from '@ai-sdk/azure';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createProviderRegistry } from 'ai';
@@ -9,6 +10,13 @@ const registry = createProviderRegistry({
   google: createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   }),
+});
+
+const azure = createAzure({
+  apiKey: process.env.AZURE_API_KEY,
+  ...(process.env.AZURE_BASE_URL
+    ? { baseURL: process.env.AZURE_BASE_URL }
+    : { resourceName: process.env.AZURE_RESOURCE_NAME }),
 });
 
 export function getAiModel() {
@@ -26,21 +34,31 @@ export function getAiModel() {
     openai: process.env.OPENAI_API_KEY,
     anthropic: process.env.ANTHROPIC_API_KEY,
     google: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    azure: process.env.AZURE_API_KEY,
+  };
+  const keyNames: Record<string, string> = {
+    openai: 'OPENAI_API_KEY',
+    anthropic: 'ANTHROPIC_API_KEY',
+    google: 'GOOGLE_GENERATIVE_AI_API_KEY',
+    azure: 'AZURE_API_KEY',
   };
 
   if (!modelId || !(provider in apiKeys)) {
     throw new Error(
-      'AI_MODEL must use a supported provider:model-id value (openai, anthropic, or google).',
+      'AI_MODEL must use a supported provider:model-id value (azure, openai, anthropic, or google).',
     );
   }
   if (!apiKeys[provider]) {
-    const keyName =
-      provider === 'openai'
-        ? 'OPENAI_API_KEY'
-        : provider === 'anthropic'
-          ? 'ANTHROPIC_API_KEY'
-          : 'GOOGLE_GENERATIVE_AI_API_KEY';
-    throw new Error(`Missing ${keyName} for AI_MODEL=${configuredModel}.`);
+    throw new Error(`Missing ${keyNames[provider]} for AI_MODEL=${configuredModel}.`);
+  }
+  if (provider === 'azure') {
+    if (!process.env.AZURE_BASE_URL && !process.env.AZURE_RESOURCE_NAME) {
+      throw new Error(
+        'Azure AI requires either AZURE_BASE_URL or AZURE_RESOURCE_NAME for AI_MODEL=' +
+          `${configuredModel}.`,
+      );
+    }
+    return azure.chat(modelId);
   }
 
   return registry.languageModel(

@@ -24,8 +24,11 @@ CookFood runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shor
 
 ## Environment
 
-- `AI_MODEL`: required on the server in `provider:model-id` form.
-- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`: provider keys; only the provider selected by `AI_MODEL` is required.
+- `AI_MODEL`: required on the server in `provider:model-id` form. For Azure, the model id is the Foundry deployment name, for example `azure:your-deployment-name`.
+- `AZURE_API_KEY`: required for `AI_MODEL=azure:...`.
+- `AZURE_RESOURCE_NAME`: Azure resource name when using the default endpoint.
+- `AZURE_BASE_URL`: optional Azure endpoint override; it wins over `AZURE_RESOURCE_NAME`. Azure deployments must support vision/image input and structured JSON output because pantry scans and reel screenshots use both.
+- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`: alternative provider keys; only the provider selected by `AI_MODEL` is required.
 - `INSTACART_API_KEY`: optional; without it, grocery-link returns `{ "url": null }` and the app shares a plain shopping list.
 - `EXPO_PUBLIC_API_URL`: optional native client API origin, for example a LAN URL to the Expo Router server.
 
