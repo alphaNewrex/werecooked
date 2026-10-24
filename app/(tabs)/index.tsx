@@ -204,7 +204,7 @@ export default function PantryScreen() {
                 {group.map((item) => {
                   const expanded = expandedId === item.id;
                   return (
-                    <View className="w-full gap-2" key={item.id}>
+                    <View className={`${expanded ? 'w-full' : ''} gap-2`} key={item.id}>
                       <Pressable
                         className={`flex-row items-center gap-2 self-start rounded-full border bg-card px-4 py-3 ${expanded ? 'border-tomato' : 'border-border'}`}
                         onPress={() => setExpandedId(expanded ? null : item.id)}>
