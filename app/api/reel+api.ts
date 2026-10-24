@@ -1,6 +1,7 @@
 import { generateObject } from 'ai';
 
 import { getAiModel, imagePrompt } from '@/lib/ai.server';
+import { reelInstructions } from '@/lib/reel.server';
 import { ReelRequestSchema, ReelResponseSchema } from '@/lib/schemas';
 
 function errorResponse(error: unknown, status = 500) {
@@ -25,9 +26,7 @@ export async function POST(request: Request) {
         imagePrompt(
           input.data.imageBase64,
           input.data.mimeType,
-          `Read the caption and on-screen text in this social video screenshot. Infer the featured dish and reconstruct a complete ingredient list and concise cooking steps. Compare ingredients with this pantry: ${input.data.pantry.join(', ') || 'an empty pantry'}.
-
-Set haveIt using that pantry. Always treat salt, pepper, water, and cooking oil as haveIt=true. Estimate a USD price in estPriceUsd for each missing item. sourceNotes should state what text was readable and how confident the inference is.`,
+          reelInstructions(input.data.pantry),
         ),
       ],
     });

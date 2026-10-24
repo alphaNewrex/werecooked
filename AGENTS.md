@@ -14,6 +14,10 @@ CookFood is a hackathon MVP Expo app that turns a pantry or a saved cooking-reel
 - `lib/pantry.tsx`: `PantryProvider`/`usePantry` with AsyncStorage persistence.
 - `lib/api.ts`: one native-safe JSON POST helper; set `EXPO_PUBLIC_API_URL` when relative routes are not reachable from a physical device.
 
+## Share from Instagram
+
+CookFood runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shortcut instead of a native share extension. In the app’s Reel tab, copy the selectable **Shortcut link** base. In the **Shortcuts** app: **New Shortcut** named **CookFood** → open **Details/info** and enable **Show in Share Sheet**, accepting **URLs and Text** → add **URL Encode** with **Shortcut Input** → add **Text** containing `<shortcut link shown in app>?url=` followed by the **URL Encoded Text** magic variable → add **Open URLs**. Sharing an Instagram reel to CookFood opens `reel?url=...`, extracts its caption, and falls back to the screenshot picker when Instagram does not expose one. The shortcut base changes if the Mac IP changes.
+
 ## Data shapes
 
 `PantryItem` is `{ id: string; name: string; quantity?: string; category?: string; addedAt: number }`. `RecipeIngredient` is `{ name: string; amount: string; haveIt: boolean; estPriceUsd?: number }`, where estimated price is used only for missing ingredients. `Recipe` is `{ title: string; description: string; servings: number; timeMinutes: number; ingredients: RecipeIngredient[]; steps: string[] }`.

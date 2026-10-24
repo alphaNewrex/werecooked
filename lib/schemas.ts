@@ -37,6 +37,11 @@ export const ReelRequestSchema = ScanPantryRequestSchema.extend({
   pantry: z.array(z.string().min(1)).max(200),
 });
 
+export const ReelLinkRequestSchema = z.object({
+  url: z.string().url(),
+  pantry: z.array(z.string().min(1)).max(200),
+});
+
 export const GroceryLinkRequestSchema = z.object({
   title: z.string().min(1),
   items: z.array(
