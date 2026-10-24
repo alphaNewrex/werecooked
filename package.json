@@ -55,7 +55,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "demo:record": "RECORD_DEMO=1 playwright test e2e/demo.spec.ts"
   },
   "private": true
 }
