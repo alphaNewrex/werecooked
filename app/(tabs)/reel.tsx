@@ -103,7 +103,7 @@ export default function ReelScreen() {
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-28" showsVerticalScrollIndicator={false}>
         <Text className="font-display text-5xl leading-[1.05]">Cook the reel</Text>
         <Text className="-mt-2 text-base leading-6 text-muted-foreground">
-          Paste a link or bring a screenshot. CookFood will pull out the dish.
+          Paste a link or bring a screenshot. We’ll pull out the dish.
         </Text>
 
         <Card className="gap-3 rounded-2xl border-border bg-card p-4">

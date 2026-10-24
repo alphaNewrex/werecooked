@@ -12,7 +12,7 @@ async function imageBase64(name: string) {
   return (await readFile(fixture(name))).toString('base64');
 }
 
-test.describe('CookFood API', () => {
+test.describe("We're Cooked! API", () => {
   test('scans the pantry photo', async ({ request }) => {
     // pantry-photo.jpg shows only one food (poblanos), so a correct scan returns one item.
     // Use the multi-food USDA photo to verify that several distinct items are detected.
@@ -78,7 +78,7 @@ test.describe('CookFood API', () => {
 
   test('creates a grocery link', async ({ request }) => {
     const response = await request.post('/api/grocery-link', {
-      data: { title: 'CookFood test', items: [{ name: 'eggs', amount: '12' }] },
+      data: { title: "We're Cooked! test", items: [{ name: 'eggs', amount: '12' }] },
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();

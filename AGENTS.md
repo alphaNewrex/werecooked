@@ -1,6 +1,6 @@
-# CookFood
+# We're Cooked!
 
-CookFood is a hackathon MVP Expo app that turns a pantry or a saved cooking-reel screenshot into practical recipes: people can manually manage pantry inventory, scan food photos for reviewable detections, ask AI what they can cook, compare a reel recipe against what they have, estimate missing-item prices, and create a grocery handoff. It uses Expo Router with native tabs and one shared recipe stack screen; server-only Expo Router API routes call the Vercel AI SDK through a provider registry, while pantry data is persisted locally through AsyncStorage and the active recipe is passed through a tiny module-level store.
+We're Cooked! (formerly CookFood; internal ids such as the `cookfood` slug/scheme/package name and the `cookfood.pantry` storage key are intentionally unchanged) is a hackathon MVP Expo app that turns a pantry or a saved cooking-reel screenshot into practical recipes: people can manually manage pantry inventory, scan food photos for reviewable detections, ask AI what they can cook, compare a reel recipe against what they have, estimate missing-item prices, and create a grocery handoff. It uses Expo Router with native tabs and one shared recipe stack screen; server-only Expo Router API routes call the Vercel AI SDK through a provider registry, while pantry data is persisted locally through AsyncStorage and the active recipe is passed through a tiny module-level store.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ CookFood is a hackathon MVP Expo app that turns a pantry or a saved cooking-reel
 
 ## Share from Instagram
 
-CookFood runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shortcut instead of a native share extension. In the app’s Reel tab, copy the selectable **Shortcut link** base. In the **Shortcuts** app: **New Shortcut** named **CookFood** → open **Details/info** and enable **Show in Share Sheet**, accepting **URLs and Text** → add **URL Encode** with **Shortcut Input** → add **Text** containing `<shortcut link shown in app>?url=` followed by the **URL Encoded Text** magic variable → add **Open URLs**. Sharing an Instagram reel to CookFood opens `reel?url=...`, extracts its caption, and falls back to the screenshot picker when Instagram does not expose one. The shortcut base changes if the Mac IP changes.
+We're Cooked! runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shortcut instead of a native share extension. In the app’s Reel tab, copy the selectable **Shortcut link** base. In the **Shortcuts** app: **New Shortcut** named **We're Cooked!** → open **Details/info** and enable **Show in Share Sheet**, accepting **URLs and Text** → add **URL Encode** with **Shortcut Input** → add **Text** containing `<shortcut link shown in app>?url=` followed by the **URL Encoded Text** magic variable → add **Open URLs**. Sharing an Instagram reel to We're Cooked! opens `reel?url=...`, extracts its caption, and falls back to the screenshot picker when Instagram does not expose one. The shortcut base changes if the Mac IP changes.
 
 ## Data shapes
 
@@ -39,7 +39,7 @@ CookFood runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shor
 
 Keep local `.env` files out of git. The server returns clear JSON errors when AI configuration is missing.
 
-Register a Kroger app at https://developer.kroger.com in the Production environment and request the Products API `product.compact` scope. CookFood only searches products and never creates carts or requests user OAuth.
+Register a Kroger app at https://developer.kroger.com in the Production environment and request the Products API `product.compact` scope. We're Cooked! only searches products and never creates carts or requests user OAuth.
 
 ## Commands
 

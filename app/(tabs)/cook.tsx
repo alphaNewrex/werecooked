@@ -67,7 +67,7 @@ export default function CookScreen() {
         )}
         {!loading && !error && recipes.length === 0 && (
           <Card className="gap-2 rounded-2xl border-border bg-card p-5 shadow-none">
-            <Text className="font-sans-bold text-lg">Add ingredients, then ask CookFood.</Text>
+            <Text className="font-sans-bold text-lg">Add ingredients, then let’s get cooking.</Text>
             <Text variant="muted">We’ll rank recipes by what you already have.</Text>
           </Card>
         )}
