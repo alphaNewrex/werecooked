@@ -1,7 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, Pressable, SafeAreaView, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, SafeAreaView, ScrollView, Share, View } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
 import { getCurrentRecipe } from '@/lib/recipe-store';
 import type { Recipe } from '@/lib/types';
@@ -50,110 +55,92 @@ export default function RecipeScreen() {
 
   if (!recipe) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>No recipe selected</Text>
-          <Pressable onPress={() => router.back()}>
-            <Text style={styles.back}>Go back</Text>
-          </Pressable>
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="flex-1 items-center justify-center gap-3 p-8">
+          <Text className="text-2xl font-extrabold">No recipe selected</Text>
+          <Button variant="ghost" onPress={() => router.back()}>
+            <Text>Go back</Text>
+          </Button>
         </View>
       </SafeAreaView>
     );
   }
 
+  const have = recipe.ingredients.filter((item) => item.haveIt);
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.eyebrow}>{recipe.timeMinutes} MINUTES · SERVES {recipe.servings}</Text>
-        <Text style={styles.title}>{recipe.title}</Text>
-        <Text style={styles.description}>{recipe.description}</Text>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-4 p-5 pb-12"
+        showsVerticalScrollIndicator={false}>
+        <Text className="text-xs font-extrabold tracking-widest text-primary">
+          {recipe.timeMinutes} MINUTES · SERVES {recipe.servings}
+        </Text>
+        <Text className="text-4xl font-extrabold tracking-tight">{recipe.title}</Text>
+        <Text className="-mt-2 text-base leading-6 text-muted-foreground">{recipe.description}</Text>
 
-        <View style={styles.summary}>
-          <Text style={styles.summaryBig}>{recipe.ingredients.filter((item) => item.haveIt).length}</Text>
+        <Card className="flex-row items-center gap-3 rounded-2xl border-0 bg-secondary p-4 shadow-none">
+          <Text className="text-4xl font-black text-secondary-foreground">{have.length}</Text>
           <View>
-            <Text style={styles.summaryLabel}>ingredients</Text>
-            <Text style={styles.summaryText}>already in your pantry</Text>
+            <Text className="font-extrabold">ingredients</Text>
+            <Text variant="muted">already in your pantry</Text>
           </View>
-        </View>
+        </Card>
 
-        <Text style={styles.sectionTitle}>Ingredients</Text>
-        <View style={styles.ingredientCard}>
-          <Text style={styles.groupLabel}>YOU HAVE</Text>
-          {recipe.ingredients.filter((item) => item.haveIt).map((item) => (
-            <View style={styles.ingredientRow} key={`have-${item.name}`}>
-              <Text style={styles.dot}>✓</Text>
-              <Text style={styles.ingredient}>{item.amount} {item.name}</Text>
+        <Text className="mt-1 text-2xl font-extrabold">Ingredients</Text>
+        <Card className="gap-3 rounded-2xl p-4">
+          <Text className="text-xs font-black uppercase tracking-widest text-secondary-foreground">You have</Text>
+          {have.map((item) => (
+            <View className="flex-row items-center gap-2" key={`have-${item.name}`}>
+              <Badge variant="secondary">
+                <Text>✓</Text>
+              </Badge>
+              <Text className="flex-1">{item.amount} {item.name}</Text>
             </View>
           ))}
           {missing.length > 0 && (
             <>
-              <Text style={[styles.groupLabel, styles.needLabel]}>YOU NEED</Text>
+              <Separator className="my-1" />
+              <Text className="text-xs font-black uppercase tracking-widest text-primary">You need</Text>
               {missing.map((item) => (
-                <View style={styles.ingredientRow} key={`need-${item.name}`}>
-                  <Text style={[styles.dot, styles.needDot]}>+</Text>
-                  <Text style={styles.ingredient}>{item.amount} {item.name}</Text>
-                  <Text style={styles.price}>${(item.estPriceUsd ?? 0).toFixed(2)}</Text>
+                <View className="flex-row items-center gap-2" key={`need-${item.name}`}>
+                  <Badge variant="outline">
+                    <Text className="text-primary">+</Text>
+                  </Badge>
+                  <Text className="flex-1">{item.amount} {item.name}</Text>
+                  <Badge>
+                    <Text>${(item.estPriceUsd ?? 0).toFixed(2)}</Text>
+                  </Badge>
                 </View>
               ))}
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Estimated missing items</Text>
-                <Text style={styles.total}>${total.toFixed(2)}</Text>
+              <Separator className="my-1" />
+              <View className="flex-row items-center justify-between">
+                <Text variant="muted">Estimated missing items</Text>
+                <Text className="text-lg font-black">${total.toFixed(2)}</Text>
               </View>
             </>
           )}
-        </View>
+        </Card>
 
-        <Text style={styles.sectionTitle}>Method</Text>
-        <View style={styles.steps}>
+        <Text className="mt-1 text-2xl font-extrabold">Method</Text>
+        <View className="gap-3">
           {recipe.steps.map((step, index) => (
-            <View style={styles.step} key={`${index}-${step}`}>
-              <Text style={styles.stepNumber}>{index + 1}</Text>
-              <Text style={styles.stepText}>{step}</Text>
+            <View className="flex-row items-start gap-3" key={`${index}-${step}`}>
+              <Badge variant="secondary">
+                <Text>{index + 1}</Text>
+              </Badge>
+              <Text className="flex-1 leading-6 text-muted-foreground">{step}</Text>
             </View>
           ))}
         </View>
 
         {missing.length > 0 && (
-          <Pressable style={styles.primaryButton} onPress={() => void getGroceries()} disabled={groceryLoading}>
-            <Text style={styles.primaryButtonText}>
-              {groceryLoading ? 'Preparing list…' : 'Get groceries'}
-            </Text>
-          </Pressable>
+          <Button onPress={() => void getGroceries()} disabled={groceryLoading} className="mt-1">
+            <Text>{groceryLoading ? 'Preparing list…' : 'Get groceries'}</Text>
+          </Button>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F8F3EA' },
-  content: { padding: 22, paddingBottom: 48, gap: 16 },
-  eyebrow: { color: '#B8613B', fontSize: 11, fontWeight: '800', letterSpacing: 1.1 },
-  title: { color: '#25332D', fontSize: 39, fontWeight: '800', letterSpacing: -1, marginTop: -3 },
-  description: { color: '#70685D', fontSize: 16, lineHeight: 23, marginTop: -7 },
-  summary: { backgroundColor: '#DDE9D5', borderRadius: 17, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 3 },
-  summaryBig: { color: '#4D7C65', fontSize: 36, fontWeight: '900' },
-  summaryLabel: { color: '#25332D', fontWeight: '800', fontSize: 15 },
-  summaryText: { color: '#55675B', fontSize: 13 },
-  sectionTitle: { color: '#25332D', fontSize: 23, fontWeight: '800', marginTop: 4 },
-  ingredientCard: { backgroundColor: '#FFFDF9', borderRadius: 16, padding: 16, gap: 10 },
-  groupLabel: { color: '#4D7C65', fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginBottom: 2 },
-  needLabel: { color: '#B8613B', marginTop: 9 },
-  ingredientRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  dot: { color: '#FFF', backgroundColor: '#4D7C65', width: 22, height: 22, lineHeight: 22, textAlign: 'center', borderRadius: 7, fontWeight: '900', overflow: 'hidden' },
-  needDot: { backgroundColor: '#E8B092', color: '#7E452C' },
-  ingredient: { color: '#25332D', flex: 1, fontSize: 15 },
-  price: { color: '#B8613B', fontWeight: '800', fontSize: 13 },
-  totalRow: { borderTopWidth: 1, borderTopColor: '#EEE4D7', marginTop: 7, paddingTop: 12, flexDirection: 'row', justifyContent: 'space-between' },
-  totalLabel: { color: '#70685D', fontSize: 13 },
-  total: { color: '#25332D', fontWeight: '900', fontSize: 16 },
-  steps: { gap: 12 },
-  step: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  stepNumber: { color: '#B8613B', fontWeight: '900', fontSize: 16, width: 24 },
-  stepText: { color: '#4E514B', fontSize: 15, lineHeight: 22, flex: 1 },
-  primaryButton: { backgroundColor: '#E7683D', borderRadius: 13, padding: 15, alignItems: 'center', marginTop: 5 },
-  primaryButtonText: { color: '#FFF', fontWeight: '800', fontSize: 15 },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14, padding: 30 },
-  emptyTitle: { color: '#25332D', fontWeight: '800', fontSize: 22 },
-  back: { color: '#B8613B', fontWeight: '800' },
-});

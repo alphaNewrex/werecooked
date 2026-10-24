@@ -1,16 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
 import { usePantry } from '@/lib/pantry';
 
@@ -112,35 +108,43 @@ export default function PantryScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.eyebrow}>YOUR KITCHEN, IN ONE PLACE</Text>
-        <Text style={styles.title}>Pantry</Text>
-        <Text style={styles.subtitle}>Tell CookFood what you have. We’ll handle the rest.</Text>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-4 p-5 pb-12"
+        showsVerticalScrollIndicator={false}>
+        <Text className="text-xs font-extrabold tracking-widest text-primary">YOUR KITCHEN, IN ONE PLACE</Text>
+        <Text className="text-4xl font-extrabold tracking-tight text-foreground">Pantry</Text>
+        <Text className="-mt-2 text-base leading-6 text-muted-foreground">
+          Tell CookFood what you have. We’ll handle the rest.
+        </Text>
 
-        <View style={styles.scanCard}>
-          <View style={styles.scanCopy}>
-            <Text style={styles.scanTitle}>See what’s on hand</Text>
-            <Text style={styles.cardText}>Snap a shelf or choose a photo. You review every result.</Text>
+        <Card className="gap-4 rounded-2xl border-0 bg-foreground p-5">
+          <View className="gap-1">
+            <Text className="text-lg font-extrabold text-background">See what’s on hand</Text>
+            <Text className="text-sm leading-5 text-background/80">
+              Snap a shelf or choose a photo. You review every result.
+            </Text>
           </View>
-          <View style={styles.row}>
-            <Pressable style={styles.secondaryButton} onPress={() => void pickAndScan('camera')}>
-              <Text style={styles.secondaryButtonText}>Camera</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryButton} onPress={() => void pickAndScan('library')}>
-              <Text style={styles.secondaryButtonText}>Photo library</Text>
-            </Pressable>
+          <View className="flex-row gap-2">
+            <Button variant="secondary" size="sm" onPress={() => void pickAndScan('camera')}>
+              <Text>Camera</Text>
+            </Button>
+            <Button variant="outline" size="sm" onPress={() => void pickAndScan('library')}>
+              <Text>Photo library</Text>
+            </Button>
           </View>
-          {scanning && <Text style={styles.status}>Reading your photo…</Text>}
-        </View>
+          {scanning && <Text className="text-sm text-primary-foreground">Reading your photo…</Text>}
+        </Card>
 
         {detected.length > 0 && (
-          <View style={styles.reviewCard}>
-            <Text style={styles.cardTitle}>Review detected items</Text>
+          <Card className="gap-3 rounded-2xl p-4">
+            <Text className="text-lg font-extrabold">Review detected items</Text>
             {detected.map((item, index) => (
-              <Pressable
+              <Button
                 key={`${item.name}-${index}`}
-                style={styles.detectedRow}
+                variant="ghost"
+                className="h-auto justify-start px-0 py-1"
                 onPress={() =>
                   setDetected((current) =>
                     current.map((entry, entryIndex) =>
@@ -148,126 +152,94 @@ export default function PantryScreen() {
                     ),
                   )
                 }>
-                <Text style={[styles.check, !item.selected && styles.unchecked]}>
-                  {item.selected ? '✓' : ''}
+                <Text className={item.selected ? 'text-primary' : 'text-muted-foreground'}>
+                  {item.selected ? '✓' : '○'}
                 </Text>
-                <Text style={styles.ingredientName}>{item.name}</Text>
-                <Text style={styles.muted}>{item.quantity ?? ''}</Text>
-              </Pressable>
+                <Text className="flex-1 text-left font-semibold">{item.name}</Text>
+                <Text variant="muted">{item.quantity ?? ''}</Text>
+              </Button>
             ))}
-            <Pressable style={styles.primaryButton} onPress={addDetected}>
-              <Text style={styles.primaryButtonText}>Add selected to pantry</Text>
-            </Pressable>
-          </View>
+            <Button onPress={addDetected}>
+              <Text>Add selected to pantry</Text>
+            </Button>
+          </Card>
         )}
 
-        <View style={styles.formCard}>
-          <Text style={styles.cardTitle}>{editingId ? 'Edit ingredient' : 'Add an ingredient'}</Text>
-          <TextInput
+        <Card className="gap-3 rounded-2xl p-4">
+          <Text className="text-lg font-extrabold">{editingId ? 'Edit ingredient' : 'Add an ingredient'}</Text>
+          <Input
             placeholder="Ingredient name"
-            placeholderTextColor="#9B9184"
             value={name}
             onChangeText={setName}
-            style={styles.input}
+            className="bg-muted"
           />
-          <View style={styles.row}>
-            <TextInput
+          <View className="flex-row gap-2">
+            <Input
               placeholder="Quantity"
-              placeholderTextColor="#9B9184"
               value={quantity}
               onChangeText={setQuantity}
-              style={[styles.input, styles.halfInput]}
+              className="flex-1 bg-muted"
             />
-            <TextInput
+            <Input
               placeholder="Category"
-              placeholderTextColor="#9B9184"
               value={category}
               onChangeText={setCategory}
-              style={[styles.input, styles.halfInput]}
+              className="flex-1 bg-muted"
             />
           </View>
-          <View style={styles.row}>
-            <Pressable style={styles.primaryButton} onPress={saveItem}>
-              <Text style={styles.primaryButtonText}>{editingId ? 'Save changes' : 'Add to pantry'}</Text>
-            </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Button onPress={saveItem}>
+              <Text>{editingId ? 'Save changes' : 'Add to pantry'}</Text>
+            </Button>
             {editingId && (
-              <Pressable style={styles.cancelButton} onPress={resetForm}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </Pressable>
+              <Button variant="ghost" onPress={resetForm}>
+                <Text>Cancel</Text>
+              </Button>
             )}
           </View>
-        </View>
+        </Card>
 
-        <View style={styles.listHeader}>
-          <Text style={styles.sectionTitle}>In your pantry</Text>
-          <Text style={styles.count}>{hydrated ? `${items.length} items` : 'Loading…'}</Text>
+        <View className="mt-2 flex-row items-baseline justify-between">
+          <Text className="text-2xl font-extrabold">In your pantry</Text>
+          <Text variant="muted">{hydrated ? `${items.length} items` : 'Loading…'}</Text>
         </View>
         {items.length === 0 && hydrated ? (
-          <Text style={styles.empty}>Nothing here yet. Add your first ingredient above.</Text>
+          <Text className="rounded-xl bg-card p-5 leading-5 text-muted-foreground">
+            Nothing here yet. Add your first ingredient above.
+          </Text>
         ) : (
           items.map((item) => (
-            <View style={styles.itemRow} key={item.id}>
-              <View style={styles.itemCopy}>
-                <Text style={styles.ingredientName}>{item.name}</Text>
-                <Text style={styles.muted}>
+            <Card className="flex-row items-center gap-2 rounded-2xl p-4" key={item.id}>
+              <View className="min-w-0 flex-1 gap-1">
+                <Text className="font-bold">{item.name}</Text>
+                <Text variant="muted">
                   {[item.quantity, item.category].filter(Boolean).join(' · ') || 'No details'}
                 </Text>
               </View>
-              <Pressable onPress={() => editItem(item)} hitSlop={10}>
-                <Text style={styles.edit}>Edit</Text>
-              </Pressable>
-              <Pressable
+              {item.category && (
+                <Badge variant="secondary">
+                  <Text>{item.category}</Text>
+                </Badge>
+              )}
+              <Button variant="ghost" size="sm" onPress={() => editItem(item)}>
+                <Text>Edit</Text>
+              </Button>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="h-8 w-8"
                 onPress={() =>
                   Alert.alert('Remove item?', `Remove ${item.name} from your pantry?`, [
                     { text: 'Keep' },
                     { text: 'Remove', style: 'destructive', onPress: () => removeItem(item.id) },
                   ])
-                }
-                hitSlop={10}>
-                <Text style={styles.delete}>×</Text>
-              </Pressable>
-            </View>
+                }>
+                <Text className="text-lg text-white">×</Text>
+              </Button>
+            </Card>
           ))
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F8F3EA' },
-  content: { padding: 22, paddingBottom: 48, gap: 16 },
-  eyebrow: { color: '#B8613B', fontSize: 11, fontWeight: '800', letterSpacing: 1.2 },
-  title: { color: '#25332D', fontSize: 42, fontWeight: '800', letterSpacing: -1 },
-  subtitle: { color: '#70685D', fontSize: 16, lineHeight: 23, marginTop: -8 },
-  scanCard: { backgroundColor: '#25332D', borderRadius: 20, padding: 18, gap: 14 },
-  scanCopy: { gap: 5 },
-  scanTitle: { color: '#FFFDF9', fontSize: 18, fontWeight: '800' },
-  cardTitle: { color: '#25332D', fontSize: 18, fontWeight: '800' },
-  cardText: { color: '#D8DED6', fontSize: 14, lineHeight: 20 },
-  row: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  secondaryButton: { backgroundColor: '#DDE9D5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11 },
-  secondaryButtonText: { color: '#25332D', fontWeight: '800', fontSize: 13 },
-  status: { color: '#F4C6A8', fontSize: 13 },
-  reviewCard: { backgroundColor: '#FFFDF9', borderRadius: 16, padding: 16, gap: 12 },
-  detectedRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  check: { backgroundColor: '#E7683D', color: '#FFF', width: 24, height: 24, textAlign: 'center', lineHeight: 24, borderRadius: 7, overflow: 'hidden', fontWeight: '800' },
-  unchecked: { backgroundColor: '#E7DFD4' },
-  ingredientName: { color: '#25332D', fontSize: 15, fontWeight: '700', flex: 1 },
-  muted: { color: '#8C8275', fontSize: 13 },
-  formCard: { backgroundColor: '#FFFDF9', borderRadius: 16, padding: 16, gap: 11 },
-  input: { backgroundColor: '#F3EDE3', borderRadius: 11, padding: 13, color: '#25332D', fontSize: 15, flex: 1 },
-  halfInput: { minWidth: 0 },
-  primaryButton: { backgroundColor: '#E7683D', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, alignItems: 'center', justifyContent: 'center' },
-  primaryButtonText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
-  cancelButton: { paddingHorizontal: 10 },
-  cancelText: { color: '#B8613B', fontWeight: '700' },
-  listHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 8 },
-  sectionTitle: { color: '#25332D', fontSize: 22, fontWeight: '800' },
-  count: { color: '#8C8275', fontSize: 13 },
-  empty: { color: '#8C8275', backgroundColor: '#FFFDF9', borderRadius: 14, padding: 18, lineHeight: 21 },
-  itemRow: { backgroundColor: '#FFFDF9', borderRadius: 14, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  itemCopy: { flex: 1, gap: 4 },
-  edit: { color: '#4D7C65', fontWeight: '800', fontSize: 13 },
-  delete: { color: '#B8613B', fontSize: 25, lineHeight: 20 },
-});

@@ -1,5 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import type { Recipe } from '@/lib/types';
 
 export function RecipeCard({
@@ -11,26 +14,20 @@ export function RecipeCard({
 }) {
   const haveCount = recipe.ingredients.filter((ingredient) => ingredient.haveIt).length;
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.topline}>
-        <Text style={styles.match}>{haveCount}/{recipe.ingredients.length} on hand</Text>
-        <Text style={styles.time}>{recipe.timeMinutes} min</Text>
-      </View>
-      <Text style={styles.title}>{recipe.title}</Text>
-      <Text style={styles.description} numberOfLines={2}>
-        {recipe.description}
-      </Text>
-      <Text style={styles.link}>View recipe →</Text>
+    <Pressable onPress={onPress}>
+      <Card className="gap-2 rounded-2xl p-4">
+        <View className="flex-row items-center justify-between gap-2">
+          <Badge variant="secondary">
+            <Text>{haveCount}/{recipe.ingredients.length} on hand</Text>
+          </Badge>
+          <Text variant="muted">{recipe.timeMinutes} min</Text>
+        </View>
+        <Text className="text-2xl font-extrabold">{recipe.title}</Text>
+        <Text variant="muted" numberOfLines={2} className="leading-5">
+          {recipe.description}
+        </Text>
+        <Text className="mt-1 font-extrabold text-primary">View recipe →</Text>
+      </Card>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  card: { backgroundColor: '#FFFDF9', borderRadius: 17, padding: 17, gap: 8 },
-  topline: { flexDirection: 'row', justifyContent: 'space-between' },
-  match: { color: '#4D7C65', fontWeight: '800', fontSize: 12 },
-  time: { color: '#8C8275', fontSize: 12 },
-  title: { color: '#25332D', fontSize: 22, fontWeight: '800' },
-  description: { color: '#70685D', fontSize: 14, lineHeight: 20 },
-  link: { color: '#B8613B', fontWeight: '800', fontSize: 13, marginTop: 3 },
-});
