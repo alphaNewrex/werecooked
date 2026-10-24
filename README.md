@@ -8,6 +8,8 @@ The recommended provider is Azure AI Foundry: set `AI_MODEL=azure:<deployment-na
 
 Pantry macro lookups use USDA FoodData Central. Set `USDA_API_KEY` for normal limits; without it, the app falls back to the heavily rate-limited `DEMO_KEY`. Request a key at https://fdc.nal.usda.gov/api-key-signup.
 
+Missing recipe ingredients can use real Kroger product prices when `KROGER_CLIENT_ID`, `KROGER_CLIENT_SECRET`, and `KROGER_ZIP` are configured. Register an app at https://developer.kroger.com in the **Production** environment and request the Products API `product.compact` scope. CookFood uses product search only; it does not create carts or require user OAuth.
+
 ## Share from Instagram
 
 CookFood runs in Expo Go, so the iPhone share-sheet integration uses an iOS Shortcut rather than a native share extension. Copy the selectable **Shortcut link** shown in the Reel tab. In the **Shortcuts** app:

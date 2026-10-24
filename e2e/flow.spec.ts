@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-import { instacartConfigured } from './env';
+import { instacartConfigured, krogerConfigured } from './env';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -127,6 +127,13 @@ test('manual pantry, cook, grocery, and reel flows', async ({ page }) => {
   await expect(page.getByText('You need', { exact: true })).toBeVisible();
   await expect(page.getByText('Method', { exact: true })).toBeVisible();
   await expect(page.getByTestId('method-step').first()).toBeVisible();
+  if (krogerConfigured()) {
+    await expect(page.getByTestId('kroger-price').first()).toBeVisible();
+    await expect(page.getByTestId('kroger-store')).toBeVisible();
+  } else {
+    await expect(page.getByText(/est\./).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByTestId('kroger-price')).toHaveCount(0);
+  }
 
   // Grocery handoff: Instacart URL via Linking.openURL, or the inline shopping-list fallback.
   await page.getByRole('button', { name: 'Get groceries', exact: true }).click();

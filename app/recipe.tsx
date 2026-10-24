@@ -10,25 +10,58 @@ import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
 import { getCurrentRecipe } from '@/lib/recipe-store';
-import type { Recipe } from '@/lib/types';
+import type { KrogerPriceResult, Recipe } from '@/lib/types';
 
 export default function RecipeScreen() {
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [groceryLoading, setGroceryLoading] = useState(false);
+  const [krogerLoading, setKrogerLoading] = useState(false);
+  const [krogerPricing, setKrogerPricing] = useState<KrogerPriceResult | null>(null);
   const [groceryUrl, setGroceryUrl] = useState<string | null>(null);
   const [shoppingList, setShoppingList] = useState<string | null>(null);
   const [groceryError, setGroceryError] = useState<string | null>(null);
 
   useEffect(() => {
-    setRecipe(getCurrentRecipe());
+    const currentRecipe = getCurrentRecipe();
+    setRecipe(currentRecipe);
+    const missingItems = currentRecipe?.ingredients.filter((ingredient) => !ingredient.haveIt) ?? [];
+    if (missingItems.length === 0) {
+      return;
+    }
+    setKrogerLoading(true);
+    void postJson<KrogerPriceResult>('/api/prices', {
+      items: missingItems.map((ingredient) => ({ name: ingredient.name })),
+    })
+      .then(setKrogerPricing)
+      .catch(() => undefined)
+      .finally(() => setKrogerLoading(false));
   }, []);
 
   const missing = useMemo(
     () => recipe?.ingredients.filter((ingredient) => !ingredient.haveIt) ?? [],
     [recipe],
   );
-  const total = missing.reduce((sum, ingredient) => sum + (ingredient.estPriceUsd ?? 0), 0);
+  const krogerMatches = useMemo(
+    () =>
+      new Map(
+        (krogerPricing?.results ?? []).map((result) => [
+          result.name.trim().toLowerCase(),
+          result.match,
+        ]),
+      ),
+    [krogerPricing],
+  );
+  const pricedMissing = missing.map((ingredient) => ({
+    ingredient,
+    match: krogerMatches.get(ingredient.name.trim().toLowerCase()) ?? null,
+  }));
+  const krogerCount = pricedMissing.filter(({ match }) => match !== null).length;
+  const estimateCount = pricedMissing.length - krogerCount;
+  const total = pricedMissing.reduce(
+    (sum, { ingredient, match }) => sum + (match?.priceUsd ?? ingredient.estPriceUsd ?? 0),
+    0,
+  );
 
   async function getGroceries() {
     if (!recipe) {
@@ -48,7 +81,11 @@ export default function RecipeScreen() {
         await openGroceryUrl(response.url);
       } else {
         const message = `${recipe.title} shopping list\n\n${missing
-          .map((item) => `• ${item.amount} ${item.name}`)
+          .map((item) => {
+            const match = krogerMatches.get(item.name.trim().toLowerCase());
+            const price = match ? `$${match.priceUsd.toFixed(2)} at Kroger` : `~$${(item.estPriceUsd ?? 0).toFixed(2)} est.`;
+            return `• ${item.amount} ${item.name} — ${price}`;
+          })
           .join('\n')}\n\nEstimated total: $${total.toFixed(2)}`;
         // Always show the list inline: the Web Share API is missing in many browsers.
         setShoppingList(message);
@@ -123,24 +160,56 @@ export default function RecipeScreen() {
           ))}
           <Separator className="my-1" />
           <Text className="text-xs font-black uppercase tracking-widest text-primary">You need</Text>
+          {krogerLoading && (
+            <Text variant="muted" className="text-xs">
+              Checking Kroger prices…
+            </Text>
+          )}
+          {krogerPricing?.store && (
+            <Text testID="kroger-store" variant="muted" className="text-xs">
+              {krogerPricing.store.name} · {krogerPricing.store.address}
+            </Text>
+          )}
           {missing.length === 0 && <Text variant="muted">Nothing extra — you’re all set.</Text>}
           {missing.length > 0 && (
             <>
-              {missing.map((item, index) => (
-                <View className="flex-row items-center gap-2" key={`need-${index}-${item.name}`}>
+              {pricedMissing.map(({ ingredient, match }, index) => (
+                <View className="flex-row items-center gap-2" key={`need-${index}-${ingredient.name}`}>
                   <Badge variant="outline">
                     <Text className="text-primary">+</Text>
                   </Badge>
-                  <Text className="flex-1">{item.amount} {item.name}</Text>
-                  <Badge>
-                    <Text>${(item.estPriceUsd ?? 0).toFixed(2)}</Text>
-                  </Badge>
+                  <View className="min-w-0 flex-1 gap-0.5">
+                    <Text>{ingredient.amount} {ingredient.name}</Text>
+                    {match && (
+                      <Text variant="muted" className="text-xs" numberOfLines={1}>
+                        {[match.description, match.size].filter(Boolean).join(' · ')}
+                      </Text>
+                    )}
+                  </View>
+                  {match ? (
+                    <View className="items-end gap-0.5">
+                      <Badge testID="kroger-price">
+                        <Text>${match.priceUsd.toFixed(2)} at Kroger</Text>
+                      </Badge>
+                      {match.onSale && (
+                        <Text variant="muted" className="text-xs line-through">
+                          ${match.regularUsd.toFixed(2)}
+                        </Text>
+                      )}
+                    </View>
+                  ) : (
+                    <Badge>
+                      <Text>~${(ingredient.estPriceUsd ?? 0).toFixed(2)} est.</Text>
+                    </Badge>
+                  )}
                 </View>
               ))}
               <Separator className="my-1" />
-              <View className="flex-row items-center justify-between">
-                <Text variant="muted">Estimated missing items</Text>
-                <Text className="text-lg font-black">${total.toFixed(2)}</Text>
+              <View className="flex-row items-center gap-2">
+                <Text variant="muted">
+                  Total ${total.toFixed(2)} · {krogerCount} Kroger {krogerCount === 1 ? 'price' : 'prices'},{' '}
+                  {estimateCount} {estimateCount === 1 ? 'estimate' : 'estimates'}
+                </Text>
               </View>
             </>
           )}

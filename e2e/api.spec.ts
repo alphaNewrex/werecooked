@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import { expect, test } from '@playwright/test';
 
 import { RecipeSchema } from '../lib/schemas';
-import { instacartConfigured } from './env';
+import { instacartConfigured, krogerConfigured } from './env';
 
 const fixture = (name: string) => resolve(process.cwd(), 'e2e/fixtures', name);
 
@@ -100,5 +100,39 @@ test.describe('CookFood API', () => {
     expect(egg.proteinG).toBeLessThanOrEqual(16);
     expect(banana.kcal).toBeGreaterThanOrEqual(70);
     expect(banana.kcal).toBeLessThanOrEqual(110);
+  });
+
+  test('looks up Kroger prices or returns the unconfigured reason', async ({ request }) => {
+    const response = await request.post('/api/prices', {
+      data: {
+        items: [{ name: 'eggs' }, { name: 'spinach' }, { name: 'parmesan' }],
+        zip: process.env.KROGER_ZIP || '45202',
+      },
+      timeout: 60_000,
+    });
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    if (krogerConfigured()) {
+      expect(body.store).not.toBeNull();
+      const matches = body.results.filter(
+        (result: { match: { priceUsd: number; url: string } | null }) => result.match,
+      );
+      expect(matches.length).toBeGreaterThanOrEqual(2);
+      for (const result of matches) {
+        expect(result.match.priceUsd).toBeGreaterThanOrEqual(0.5);
+        expect(result.match.priceUsd).toBeLessThanOrEqual(30);
+        expect(result.match.url).toMatch(/^https:\/\/www\.kroger\.com\//);
+      }
+    } else {
+      expect(body.store).toBeNull();
+      expect(body.reason).toBeTruthy();
+    }
+  });
+
+  test('rejects an invalid Kroger ZIP code', async ({ request }) => {
+    const response = await request.post('/api/prices', {
+      data: { items: [{ name: 'eggs' }], zip: '1234' },
+    });
+    expect(response.status()).toBe(400);
   });
 });

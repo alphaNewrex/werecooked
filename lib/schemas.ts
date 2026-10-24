@@ -32,6 +32,11 @@ export const NutritionRequestSchema = z.object({
   names: z.array(z.string().min(1)).max(30),
 });
 
+export const KrogerPricesRequestSchema = z.object({
+  items: z.array(z.object({ name: z.string().min(1) })).min(1).max(30),
+  zip: z.string().regex(/^\d{5}$/).optional(),
+});
+
 export const ScanPantryRequestSchema = z.object({
   imageBase64: z.string().min(1),
   mimeType: z.string().min(1),

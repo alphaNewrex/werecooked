@@ -31,3 +31,26 @@ export type Recipe = {
   ingredients: RecipeIngredient[];
   steps: string[];
 };
+
+export type KrogerStore = {
+  locationId: string;
+  name: string;
+  address: string;
+};
+
+export type KrogerMatch = {
+  productId: string;
+  description: string;
+  brand?: string;
+  size?: string;
+  priceUsd: number;
+  regularUsd: number;
+  onSale: boolean;
+  url: string;
+};
+
+export type KrogerPriceResult = {
+  store: KrogerStore | null;
+  results: Array<{ name: string; match: KrogerMatch | null }>;
+  reason?: string;
+};
