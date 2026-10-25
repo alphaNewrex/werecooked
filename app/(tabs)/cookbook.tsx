@@ -1,28 +1,27 @@
 import { BookOpen } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Alert, Platform, SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
-import { LibraryEntryCard } from '@/components/LibraryEntryCard';
+import { useFeedback } from '@/components/feedback';
+import { Screen } from '@/components/layout';
+import { LibraryEntryCard } from '@/components/patterns/LibraryEntryCard';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useLibrary } from '@/lib/library';
 import { setCurrentRecipe } from '@/lib/recipe-store';
+import { useTheme } from '@/lib/theme';
 import type { LibraryEntry } from '@/lib/types';
 
 export default function CookbookScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const { confirm: confirmFeedback } = useFeedback();
   const { cookbook, hydrated, removeFromCookbook } = useLibrary();
 
-  function confirmRemove(entry: LibraryEntry) {
-    const remove = () => removeFromCookbook(entry.id);
-    if (Platform.OS === 'web') {
-      if (globalThis.confirm?.(`Remove ${entry.recipe.title} from Cookbook?`) ?? true) remove();
-      return;
+  async function confirmRemove(entry: LibraryEntry) {
+    if (await confirmFeedback({ title: 'Remove from Cookbook?', message: entry.recipe.title, confirmLabel: 'Remove', destructive: true })) {
+      removeFromCookbook(entry.id);
     }
-    Alert.alert('Remove from Cookbook?', entry.recipe.title, [
-      { text: 'Keep' },
-      { text: 'Remove', style: 'destructive', onPress: remove },
-    ]);
   }
 
   function openEntry(entry: LibraryEntry) {
@@ -36,14 +35,14 @@ export default function CookbookScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+    <Screen scroll={false}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-32" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <View className="gap-1">
-            <Text className="font-display text-5xl leading-[1.05]">Cookbook</Text>
+            <Text variant="display-xl">Cookbook</Text>
             <Text className="font-mono text-sm text-muted-foreground">Keep the recipes worth making twice.</Text>
           </View>
-          <BookOpen color="#F0532F" size={28} strokeWidth={2.2} />
+          <BookOpen color={colors.primary} size={28} strokeWidth={2.2} />
         </View>
         {!hydrated ? (
           <Text variant="muted">Loading your cookbook…</Text>
@@ -66,6 +65,6 @@ export default function CookbookScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

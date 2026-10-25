@@ -1,10 +1,12 @@
 import { BookmarkCheck, Clock, X } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Pressable } from '@/components/ui/pressable';
+import { Sticker } from '@/components/ui/sticker';
 import { Text } from '@/components/ui/text';
+import { useTheme } from '@/lib/theme';
 import type { LibraryEntry } from '@/lib/types';
 
 const sourceLabels = {
@@ -20,7 +22,8 @@ function relativeDate(createdAt: number) {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  if (days < 7) return `${days}d ago`;
+  return new Date(createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 export function LibraryEntryCard({
@@ -36,47 +39,30 @@ export function LibraryEntryCard({
   onRemove: () => void;
   testID: string;
 }) {
+  const { colors } = useTheme();
   const haveCount = entry.recipe.ingredients.filter((ingredient) => ingredient.haveIt).length;
   const needCount = entry.recipe.ingredients.length - haveCount;
-
   return (
-    <Card testID={testID} className="gap-3 rounded-2xl border-border bg-card p-4">
+    <Card testID={testID}>
       <Pressable role="button" onPress={onPress} className="gap-3">
         <View className="flex-row items-center justify-between">
-          <Badge variant="secondary">
-            <Text className="font-mono text-xs">{sourceLabels[entry.source.kind]}</Text>
-          </Badge>
+          <Sticker label={sourceLabels[entry.source.kind]} tone="staple" animate={false} />
           <View className="flex-row items-center gap-1">
-            <Clock color="#5E6B62" size={14} />
-            <Text className="font-mono text-xs text-muted-foreground">{relativeDate(entry.createdAt)}</Text>
+            <Clock color={colors.textMuted} size={14} />
+            <Text variant="numeric-sm" tone="muted">{relativeDate(entry.createdAt)}</Text>
           </View>
         </View>
-        <Text className="font-display text-2xl">{entry.recipe.title}</Text>
-        <Text variant="muted" numberOfLines={2} className="leading-5">
-          {entry.recipe.description}
-        </Text>
+        <Text variant="display-md">{entry.recipe.title}</Text>
+        <Text variant="body-sm" tone="muted" numberOfLines={2}>{entry.recipe.description}</Text>
         <View className="flex-row items-center justify-between">
-          <Text className="font-mono text-xs text-muted-foreground">
-            {haveCount} have · {needCount} need
-          </Text>
-          {saved && (
-            <Badge variant="secondary" className="gap-1 border-0 bg-leaf-soft">
-              <BookmarkCheck color="#2F8F4E" size={13} />
-              <Text className="font-mono text-xs text-leaf">Saved</Text>
-            </Badge>
-          )}
+          <Text variant="numeric-sm" tone="muted">{haveCount} have · {needCount} need</Text>
+          {saved && <View className="flex-row items-center gap-1"><BookmarkCheck color={colors.successInk} size={14} /><Text variant="caption" tone="success-ink">Saved</Text></View>}
         </View>
       </Pressable>
       <View className="flex-row items-center justify-between border-t border-border pt-2">
-        <Text variant="muted" className="font-mono text-xs uppercase tracking-widest">
-          {entry.recipe.timeMinutes} min · {entry.recipe.servings} servings
-        </Text>
-        <Button
-          variant="ghost"
-          size="icon"
-          accessibilityLabel={`Remove ${entry.recipe.title}`}
-          onPress={onRemove}>
-          <X color="#F0532F" size={17} />
+        <Text variant="label" tone="muted">{entry.recipe.timeMinutes} min · {entry.recipe.servings} servings</Text>
+        <Button variant="ghost" size="icon" accessibilityLabel={`Remove ${entry.recipe.title}`} onPress={onRemove}>
+            <X color={colors.danger} size={17} />
         </Button>
       </View>
     </Card>

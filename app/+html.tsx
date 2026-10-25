@@ -1,6 +1,8 @@
 import { ScrollViewStyleReset, useServerDocumentContext } from 'expo-router/html';
 import type { ReactNode } from 'react';
 
+import { tokens } from '@/lib/design';
+
 // This file is web-only and used to configure the root HTML for every
 // web page during static rendering.
 // The contents of this function only run in Node.js environments and
@@ -36,10 +38,10 @@ export default function Root({ children }: { children: ReactNode }) {
 
 const responsiveBackground = `
 body {
-  background-color: #F6F7F1;
+  background-color: ${tokens.colors.light.bg};
 }
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #101712;
+    background-color: ${tokens.colors.dark.bg};
   }
 }`;

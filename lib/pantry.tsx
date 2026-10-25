@@ -12,7 +12,7 @@ type PantryContextValue = {
   addItem: (input: Omit<PantryItem, 'id' | 'addedAt'>) => void;
   updateItem: (id: string, input: Omit<PantryItem, 'id' | 'addedAt'>) => void;
   removeItem: (id: string) => void;
-  addMany: (items: Array<Omit<PantryItem, 'id' | 'addedAt'>>) => void;
+  addMany: (items: Omit<PantryItem, 'id' | 'addedAt'>[]) => void;
 };
 
 const PantryContext = createContext<PantryContextValue | null>(null);
@@ -39,7 +39,7 @@ export function PantryProvider({ children }: { children: React.ReactNode }) {
 
   const enrichItems = useCallback((newItems: PantryItem[]) => {
     void postJson<{
-      results: Array<{ name: string; macros: PantryItem['macros'] | null }>;
+      results: { name: string; macros: PantryItem['macros'] | null }[];
     }>('/api/nutrition', {
       names: newItems.map((item) => item.name),
     })

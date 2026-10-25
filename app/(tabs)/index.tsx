@@ -1,16 +1,19 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Check, Images, Pencil, Plus, ScanLine, Trash2, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, SafeAreaView, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
-import { ErrorNotice } from '@/components/ErrorNotice';
+import { useFeedback } from '@/components/feedback';
+import { Screen } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Notice } from '@/components/ui/notice';
 import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
 import { usePantry } from '@/lib/pantry';
+import { useTheme } from '@/lib/theme';
 
 type DetectedItem = {
   name: string;
@@ -21,6 +24,8 @@ type DetectedItem = {
 
 export default function PantryScreen() {
   const { items, hydrated, addItem, addMany, updateItem, removeItem } = usePantry();
+  const { confirm: confirmFeedback, toast } = useFeedback();
+  const { colors } = useTheme();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [category, setCategory] = useState('');
@@ -51,7 +56,7 @@ export default function PantryScreen() {
   function saveItem() {
     if (!name.trim()) {
       setFormError('Give your pantry item a name first.');
-      Alert.alert('Add an ingredient', 'Give your pantry item a name first.');
+      toast({ message: 'Add an ingredient: Give your pantry item a name first.', tone: 'warning' });
       return;
     }
     setFormError(null);
@@ -81,7 +86,7 @@ export default function PantryScreen() {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
           setScanError('Allow camera access to scan your pantry.');
-          Alert.alert('Camera permission needed', 'Allow camera access to scan your pantry.');
+          toast({ message: 'Camera permission needed: Allow camera access to scan your pantry.', tone: 'warning' });
           return;
         }
       }
@@ -101,7 +106,7 @@ export default function PantryScreen() {
       if (!asset?.base64) return;
       setScanning(true);
       const response = await postJson<{
-        items: Array<{ name: string; quantity?: string; category?: string }>;
+        items: { name: string; quantity?: string; category?: string }[];
       }>('/api/scan-pantry', {
         imageBase64: asset.base64,
         mimeType: asset.mimeType ?? 'image/jpeg',
@@ -113,21 +118,16 @@ export default function PantryScreen() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try another photo.';
       setScanError(message);
-      Alert.alert('Scan failed', message);
+      toast({ message: `Scan failed: ${message}`, tone: 'danger' });
     } finally {
       setScanning(false);
     }
   }
 
-  function confirmRemove(item: (typeof items)[number]) {
-    if (Platform.OS === 'web') {
-      if (globalThis.confirm?.(`Remove ${item.name} from your pantry?`) ?? true) removeItem(item.id);
-      return;
+  async function confirmRemove(item: (typeof items)[number]) {
+    if (await confirmFeedback({ title: 'Remove item?', message: `Remove ${item.name} from your pantry?`, confirmLabel: 'Remove', destructive: true })) {
+      removeItem(item.id);
     }
-    Alert.alert('Remove item?', `Remove ${item.name} from your pantry?`, [
-      { text: 'Keep' },
-      { text: 'Remove', style: 'destructive', onPress: () => removeItem(item.id) },
-    ]);
   }
 
   function addDetected() {
@@ -135,11 +135,28 @@ export default function PantryScreen() {
     setDetected([]);
   }
 
+  const dock = (
+    <View className="flex-row items-center justify-between px-5 pb-2 pt-3">
+      <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Add item" onPress={() => { setEditingId(null); setFormOpen(true); }}>
+        <Plus color={colors.text} size={21} />
+      </Button>
+      <View className="items-center gap-1">
+        <Button size="icon" className="h-20 w-20 rounded-full border-8 border-primary-soft bg-primary" accessibilityLabel="Scan your shelf" disabled={scanning} onPress={() => void pickAndScan('camera')}>
+          {scanning ? <ScanLine color={colors.onPrimary} size={30} strokeWidth={2.2} /> : <Camera color={colors.onPrimary} size={30} strokeWidth={2.2} />}
+        </Button>
+        <Text variant="label" tone="muted">{scanning ? 'Reading your photo…' : 'Scan shelf'}</Text>
+      </View>
+      <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Upload a photo" disabled={scanning} onPress={() => void pickAndScan('library')}>
+        <Images color={colors.text} size={21} />
+      </Button>
+    </View>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1 }} contentContainerClassName="gap-5 p-5 pb-8" showsVerticalScrollIndicator={false}>
+    <Screen scroll={false} footer={dock}>
+      <ScrollView style={{ flex: 1 }} contentContainerClassName="gap-5 p-5 pb-40" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
-          <Text className="font-display text-5xl leading-[1.05]">Pantry</Text>
+          <Text variant="display-xl">Pantry</Text>
           <Text testID="pantry-count" className="font-mono-medium text-sm text-muted-foreground">
             {hydrated ? `${items.length} ${items.length === 1 ? 'item' : 'items'}` : 'Loading…'}
           </Text>
@@ -151,22 +168,22 @@ export default function PantryScreen() {
               <Text className="font-sans-bold text-lg">{editingId ? 'Edit ingredient' : 'Add an ingredient'}</Text>
               {items.length > 0 && !editingId && (
                 <Button variant="ghost" size="icon" className="h-8 w-8" accessibilityLabel="Close add item form" onPress={() => setFormOpen(false)}>
-                  <X color="#5E6B62" size={18} />
+                  <X color={colors.textMuted} size={18} />
                 </Button>
               )}
             </View>
-            <Input placeholder="Ingredient name" value={name} onChangeText={setName} className="bg-muted font-sans" />
+            <Input placeholder="Ingredient name" value={name} onChangeText={setName} />
             <View className="flex-row gap-2">
-              <Input placeholder="Quantity" value={quantity} onChangeText={setQuantity} className="flex-1 bg-muted font-mono" />
-              <Input placeholder="Category" value={category} onChangeText={setCategory} className="flex-1 bg-muted font-sans" />
+              <Input placeholder="Quantity" value={quantity} onChangeText={setQuantity} className="flex-1" mono />
+              <Input placeholder="Category" value={category} onChangeText={setCategory} className="flex-1" />
             </View>
-            <ErrorNotice title="Add an ingredient" message={formError} />
+            {formError && <Notice tone="danger" title="Add an ingredient" body={formError} />}
             <Button onPress={saveItem}><Text>{editingId ? 'Save changes' : 'Add to pantry'}</Text></Button>
           </Card>
         )}
 
         {detected.length > 0 && (
-          <Card className="gap-4 rounded-t-[28px] border-border bg-card p-5">
+          <Card className="gap-4 rounded-xl border-border bg-card p-5">
             <View className="flex-row items-center justify-between">
               <View>
                 <Text className="font-display text-2xl">Found {detected.length} items</Text>
@@ -178,9 +195,9 @@ export default function PantryScreen() {
               {detected.map((item, index) => (
                 <Pressable
                   key={`${item.name}-${index}`}
-                  className={`flex-row items-center gap-2 rounded-full border px-4 py-3 ${item.selected ? 'border-leaf-soft bg-leaf-soft' : 'border-border bg-card'}`}
+                  className={`flex-row items-center gap-2 rounded-full border px-4 py-3 ${item.selected ? 'border-success-soft bg-success-soft' : 'border-border bg-card'}`}
                   onPress={() => setDetected((current) => current.map((entry, entryIndex) => entryIndex === index ? { ...entry, selected: !entry.selected } : entry))}>
-                  {item.selected ? <Check color="#2F8F4E" size={17} /> : <Plus color="#5E6B62" size={17} />}
+                  {item.selected ? <Check color={colors.success} size={17} /> : <Plus color={colors.textMuted} size={17} />}
                   <Text className="flex-1 font-sans-medium">{item.name}</Text>
                   <Text className="font-mono text-xs text-muted-foreground">{item.quantity ?? ''}</Text>
                 </Pressable>
@@ -189,7 +206,7 @@ export default function PantryScreen() {
             <Button onPress={addDetected}><Text>Add selected to pantry</Text></Button>
           </Card>
         )}
-        <ErrorNotice title="Scan failed" message={scanError} />
+        {scanError && <Notice tone="danger" title="Scan failed" body={scanError} />}
 
         {items.length === 0 && hydrated ? (
           <Card className="gap-2 rounded-2xl border-dashed border-border bg-transparent p-5 shadow-none">
@@ -206,7 +223,7 @@ export default function PantryScreen() {
                   return (
                     <View className={`${expanded ? 'w-full' : ''} gap-2`} key={item.id}>
                       <Pressable
-                        className={`flex-row items-center gap-2 self-start rounded-full border bg-card px-4 py-3 ${expanded ? 'border-tomato' : 'border-border'}`}
+                        className={`flex-row items-center gap-2 self-start rounded-full border bg-card px-4 py-3 ${expanded ? 'border-primary' : 'border-border'}`}
                         onPress={() => setExpandedId(expanded ? null : item.id)}>
                         <Text className="font-sans-medium">{item.name}</Text>
                         {item.quantity && <Text className="font-mono text-xs text-muted-foreground">{item.quantity}</Text>}
@@ -219,15 +236,15 @@ export default function PantryScreen() {
                           </View>
                           <Text variant="muted" className="font-mono text-xs">Quantity · {item.quantity || 'not specified'}</Text>
                           {item.macros && (
-                            <View className="rounded-lg bg-butter-soft px-3 py-2">
+                            <View className="rounded-lg bg-warning-soft px-3 py-2">
                               <Text className="font-mono text-xs text-foreground">
                                 {item.macros.kcal.toFixed(0)} kcal · P {item.macros.proteinG.toFixed(1)}g · C {item.macros.carbsG.toFixed(1)}g · F {item.macros.fatG.toFixed(1)}g / 100g
                               </Text>
                             </View>
                           )}
                           <View className="flex-row gap-2">
-                            <Button variant="outline" size="sm" onPress={() => editItem(item)}><Pencil color="#18201B" size={15} /><Text>Edit</Text></Button>
-                            <Button variant="ghost" size="sm" accessibilityLabel={`Remove ${item.name}`} onPress={() => confirmRemove(item)}><Trash2 color="#F0532F" size={15} /><Text className="text-tomato">Remove</Text></Button>
+                            <Button variant="outline" size="sm" onPress={() => editItem(item)}><Pencil color={colors.text} size={15} /><Text>Edit</Text></Button>
+                            <Button variant="ghost" size="sm" accessibilityLabel={`Remove ${item.name}`} onPress={() => confirmRemove(item)}><Trash2 color={colors.primary} size={15} /><Text className="text-primary">Remove</Text></Button>
                           </View>
                         </Card>
                       )}
@@ -240,22 +257,6 @@ export default function PantryScreen() {
         )}
       </ScrollView>
 
-      <View className="flex-row items-center justify-between border-t border-border bg-background px-5 pb-2 pt-3">
-        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Add item" onPress={() => { setEditingId(null); setFormOpen(true); }}>
-          <Plus color="#18201B" size={21} />
-        </Button>
-        <View className="items-center gap-1">
-          <Button size="icon" className="h-20 w-20 rounded-full border-8 border-tomato-soft bg-tomato" accessibilityLabel="Scan your shelf" disabled={scanning} onPress={() => void pickAndScan('camera')}>
-            {scanning ? <ScanLine color="#FFFFFF" size={30} strokeWidth={2.2} /> : <Camera color="#FFFFFF" size={30} strokeWidth={2.2} />}
-          </Button>
-          <Text className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            {scanning ? 'Reading your photo…' : 'Scan shelf'}
-          </Text>
-        </View>
-        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Upload a photo" disabled={scanning} onPress={() => void pickAndScan('library')}>
-          <Images color="#18201B" size={21} />
-        </Button>
-      </View>
-    </SafeAreaView>
+    </Screen>
   );
 }

@@ -3,22 +3,27 @@ import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ImagePlus, Link as LinkIcon, Smartphone } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
-import { ErrorNotice } from '@/components/ErrorNotice';
-import { RecipeCard } from '@/components/RecipeCard';
+import { useFeedback } from '@/components/feedback';
+import { Screen } from '@/components/layout';
+import { RecipeCard } from '@/components/patterns/RecipeCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Notice } from '@/components/ui/notice';
 import { Text } from '@/components/ui/text';
 import { ApiError, postJson } from '@/lib/api';
 import { useLibrary } from '@/lib/library';
 import { usePantry } from '@/lib/pantry';
+import { useTheme } from '@/lib/theme';
 import { setCurrentRecipe } from '@/lib/recipe-store';
 import type { LibraryEntry, Recipe } from '@/lib/types';
 
 export default function ReelScreen() {
   const router = useRouter();
+  const { toast } = useFeedback();
+  const { colors } = useTheme();
   const { url } = useLocalSearchParams<{ url?: string | string[] }>();
   const { items, hydrated } = usePantry();
   const { addIncoming, findIncomingByUrl, hydrated: libraryHydrated } = useLibrary();
@@ -39,7 +44,7 @@ export default function ReelScreen() {
       const trimmedUrl = reelUrl.trim();
       if (!trimmedUrl) {
         setError({ title: 'Paste a reel link', message: 'Add a public Instagram URL to read its caption.' });
-        Alert.alert('Paste a reel link', 'Add a public Instagram URL to read its caption.');
+        toast({ message: 'Paste a reel link: Add a public Instagram URL to read its caption.', tone: 'warning' });
         return;
       }
       setLoading(true);
@@ -71,17 +76,17 @@ export default function ReelScreen() {
         if (error instanceof ApiError && error.needScreenshot) {
           const message = 'Add a screenshot instead and we’ll read the text from the image.';
           setError({ title: "Couldn't read this reel's caption", message });
-          Alert.alert("Couldn't read this reel's caption", message);
+          toast({ message: `Couldn't read this reel's caption: ${message}`, tone: 'danger' });
         } else {
           const message = error instanceof Error ? error.message : 'Try another link.';
           setError({ title: 'Could not read this reel', message });
-          Alert.alert('Could not read this reel', message);
+          toast({ message: `Could not read this reel: ${message}`, tone: 'danger' });
         }
       } finally {
         setLoading(false);
       }
     },
-    [addIncoming, findIncomingByUrl, items],
+    [addIncoming, findIncomingByUrl, items, toast],
   );
 
   useEffect(() => {
@@ -120,59 +125,57 @@ export default function ReelScreen() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try another screenshot.';
       setError({ title: 'Could not read this reel', message });
-      Alert.alert('Could not read this reel', message);
+      toast({ message: `Could not read this reel: ${message}`, tone: 'danger' });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+    <Screen scroll={false}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-28" showsVerticalScrollIndicator={false}>
-        <Text className="font-display text-5xl leading-[1.05]">Cook the reel</Text>
+        <Text variant="display-xl">Cook the reel</Text>
         <Text className="-mt-2 text-base leading-6 text-muted-foreground">
           Paste a link or bring a screenshot. We’ll pull out the dish.
         </Text>
 
         <Card className="gap-3 rounded-2xl border-border bg-card p-4">
           <Text className="font-sans-bold text-lg">Instagram link</Text>
-          <View className="flex-row items-center rounded-xl border border-input bg-muted px-3">
-            <LinkIcon color="#5E6B62" size={18} />
-            <Input
-              value={linkInput}
-              onChangeText={(value) => {
-                linkInputRef.current = value;
-                setLinkInput(value);
-              }}
-              placeholder="https://instagram.com/reel/…"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-              className="flex-1 border-0 bg-transparent font-sans shadow-none"
-            />
-          </View>
+          <Input
+            leadingIcon={LinkIcon}
+            value={linkInput}
+            onChangeText={(value) => {
+              linkInputRef.current = value;
+              setLinkInput(value);
+            }}
+            placeholder="https://instagram.com/reel/…"
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            className="flex-1"
+          />
           <Button onPress={() => void readReelLink(linkInputRef.current || linkInput)} disabled={loading}>
-            <LinkIcon color="#FFFFFF" size={17} />
+            <LinkIcon color={colors.onPrimary} size={17} />
             <Text>{loading ? 'Reading caption…' : 'Read reel link'}</Text>
           </Button>
           <Text className="mt-1 font-mono-medium text-xs uppercase tracking-widest text-muted-foreground">Shortcut link</Text>
           <Text selectable className="font-mono text-xs text-muted-foreground">{shortcutLink}</Text>
         </Card>
 
-        <Card className="min-h-[330px] items-center justify-center gap-4 rounded-[32px] border-2 border-dashed border-border bg-muted/50 p-7">
-          <Smartphone color="#18201B" size={34} strokeWidth={1.7} />
-          <ImagePlus color="#F0532F" size={42} strokeWidth={1.7} />
+        <Card className="min-h-80 items-center justify-center gap-4 rounded-xl border-2 border-dashed border-border bg-muted/50 p-7">
+          <Smartphone color={colors.text} size={34} strokeWidth={1.7} />
+          <ImagePlus color={colors.primary} size={42} strokeWidth={1.7} />
           <Text className="font-display text-2xl text-center">Have a recipe screenshot?</Text>
           <Text variant="muted" className="text-center leading-5">
             Choose a clear frame with the caption or ingredient text visible.
           </Text>
           <Button variant="secondary" onPress={() => void readScreenshot()} disabled={loading}>
-            <ImagePlus color="#18201B" size={17} />
+            <ImagePlus color={colors.text} size={17} />
             <Text>Choose screenshot</Text>
           </Button>
           {loading && <Text className="font-mono text-xs text-muted-foreground">Reading your reel…</Text>}
         </Card>
-        <ErrorNotice title={error?.title ?? ''} message={error?.message ?? null} />
+        {error && <Notice tone="danger" title={error.title} body={error.message} />}
         {recipe && (
           <View className="gap-3">
             <View className="flex-row items-baseline justify-between">
@@ -193,17 +196,17 @@ export default function ReelScreen() {
               }}
             />
             {addedToIncoming && (
-              <Text className="font-mono text-xs uppercase tracking-widest text-leaf">
+              <Text className="font-mono text-xs uppercase tracking-widest text-success">
                 Added to Incoming
               </Text>
             )}
-            <Card className="gap-1 rounded-xl border-leaf-soft bg-leaf-soft p-4 shadow-none">
-              <Text className="font-mono-medium text-xs uppercase tracking-widest text-leaf">What we could read</Text>
+            <Card className="gap-1 rounded-xl border-success-soft bg-success-soft p-4 shadow-none">
+              <Text className="font-mono-medium text-xs uppercase tracking-widest text-success">What we could read</Text>
               <Text className="leading-5 text-foreground">{sourceNotes}</Text>
             </Card>
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

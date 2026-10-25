@@ -38,13 +38,6 @@ module.exports = {
         price: 'rgb(var(--color-price) / <alpha-value>)',
         staple: 'rgb(var(--color-staple) / <alpha-value>)',
         // legacy: remove after migration
-        leaf: 'rgb(var(--color-success) / <alpha-value>)',
-        'leaf-soft': 'rgb(var(--color-success-soft) / <alpha-value>)',
-        tomato: 'rgb(var(--color-primary) / <alpha-value>)',
-        'tomato-soft': 'rgb(var(--color-primary-soft) / <alpha-value>)',
-        butter: 'rgb(var(--color-warning) / <alpha-value>)',
-        'butter-soft': 'rgb(var(--color-warning-soft) / <alpha-value>)',
-        // legacy: remove after migration
         border: 'rgb(var(--color-border) / <alpha-value>)',
         input: 'rgb(var(--color-border-strong) / <alpha-value>)',
         ring: 'rgb(var(--color-primary) / <alpha-value>)',

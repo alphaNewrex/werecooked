@@ -1,17 +1,20 @@
 import { Check, ChevronLeft, ChevronRight, Circle, ListChecks } from 'lucide-react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { Screen } from '@/components/layout';
 import { getCurrentRecipe } from '@/lib/recipe-store';
+import { useTheme } from '@/lib/theme';
 
 export default function CookModeScreen() {
   useKeepAwake();
   const router = useRouter();
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const current = getCurrentRecipe();
   const recipe = current?.recipe;
@@ -25,12 +28,12 @@ export default function CookModeScreen() {
 
   if (!recipe) {
     return (
-      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+      <Screen scroll={false}>
         <View className="flex-1 items-center justify-center gap-3 p-8">
           <Text className="font-display text-2xl">No recipe selected</Text>
           <Button variant="ghost" onPress={() => router.back()}><Text>Go back</Text></Button>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
@@ -49,13 +52,13 @@ export default function CookModeScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+    <Screen scroll={false}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-12">
         {phase === 'ingredients' ? (
           <>
             <View className="gap-2">
-              <Text className="font-mono-medium text-xs uppercase tracking-widest text-tomato">Prep check</Text>
-              <Text className="font-display text-5xl leading-[1.05]">Gather your ingredients</Text>
+              <Text className="font-mono-medium text-xs uppercase tracking-widest text-primary">Prep check</Text>
+              <Text variant="display-xl">Gather your ingredients</Text>
               <Text variant="muted">Tap each item as it hits the counter.</Text>
             </View>
             <Card className="gap-2 rounded-2xl border-border bg-card p-3">
@@ -66,10 +69,10 @@ export default function CookModeScreen() {
                   role="checkbox"
                   accessibilityState={{ checked: checked[index] }}
                   className={`flex-row items-center gap-3 rounded-xl border px-3 py-3 ${
-                    checked[index] ? 'border-leaf-soft bg-leaf-soft' : 'border-border bg-background'
+                    checked[index] ? 'border-success-soft bg-success-soft' : 'border-border bg-background'
                   }`}
                   onPress={() => toggleIngredient(index)}>
-                  {checked[index] ? <Check color="#2F8F4E" size={18} /> : <Circle color="#7A877E" size={18} />}
+                  {checked[index] ? <Check color={colors.success} size={18} /> : <Circle color={colors.textMuted} size={18} />}
                   <Text className={`flex-1 ${checked[index] ? 'text-muted-foreground line-through' : ''}`}>
                     {ingredient.amount} {ingredient.name}
                   </Text>
@@ -77,20 +80,20 @@ export default function CookModeScreen() {
               ))}
             </Card>
             <Button onPress={() => setPhase('steps')}>
-              <ListChecks color="#FFFFFF" size={18} />
+              <ListChecks color={colors.onPrimary} size={18} />
               <Text>Start steps</Text>
             </Button>
           </>
         ) : (
           <>
             <View className="flex-row items-center justify-between">
-              <Text className="font-mono-medium text-xs uppercase tracking-widest text-tomato">Cooking now</Text>
+              <Text className="font-mono-medium text-xs uppercase tracking-widest text-primary">Cooking now</Text>
               <Text testID="cook-progress" className="font-mono text-xs text-muted-foreground">
                 Step {stepIndex + 1} of {recipe.steps.length}
               </Text>
             </View>
-            <Card className="min-h-[360px] justify-center rounded-3xl border-0 bg-leaf-soft p-6 shadow-none">
-              <Text testID="cook-step" className="font-display text-4xl leading-[1.08] text-foreground">
+            <Card className="min-h-80 justify-center rounded-xl border-0 bg-success-soft p-6 shadow-none">
+              <Text testID="cook-step" variant="display-lg">
                 {recipe.steps[stepIndex]}
               </Text>
             </Card>
@@ -100,17 +103,17 @@ export default function CookModeScreen() {
                 className="flex-1"
                 disabled={stepIndex === 0}
                 onPress={() => setStepIndex((currentIndex) => Math.max(0, currentIndex - 1))}>
-                <ChevronLeft color="#18201B" size={18} />
+                <ChevronLeft color={colors.text} size={18} />
                 <Text>Back</Text>
               </Button>
               <Button className="flex-1" onPress={nextStep}>
                 <Text>{stepIndex === recipe.steps.length - 1 ? 'Done' : 'Next'}</Text>
-                {stepIndex < recipe.steps.length - 1 && <ChevronRight color="#FFFFFF" size={18} />}
+                {stepIndex < recipe.steps.length - 1 && <ChevronRight color={colors.onPrimary} size={18} />}
               </Button>
             </View>
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

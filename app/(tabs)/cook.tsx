@@ -1,21 +1,26 @@
 import { ChefHat } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
-import { ErrorNotice } from '@/components/ErrorNotice';
-import { RecipeCard } from '@/components/RecipeCard';
+import { useFeedback } from '@/components/feedback';
+import { Screen } from '@/components/layout';
+import { RecipeCard } from '@/components/patterns/RecipeCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Notice } from '@/components/ui/notice';
 import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
 import { usePantry } from '@/lib/pantry';
+import { useTheme } from '@/lib/theme';
 import { setCurrentRecipe } from '@/lib/recipe-store';
 import type { Recipe } from '@/lib/types';
 
 export default function CookScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { items, hydrated } = usePantry();
+  const { toast } = useFeedback();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,24 +34,24 @@ export default function CookScreen() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try again.';
       setError(message);
-      Alert.alert('Could not find recipes', message);
+      toast({ message: `Could not find recipes: ${message}`, tone: 'danger' });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+    <Screen scroll={false}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-28" showsVerticalScrollIndicator={false}>
-        <Text className="font-display text-5xl leading-[1.05]">What can I make?</Text>
+        <Text variant="display-xl">What can I make?</Text>
         <Text className="-mt-2 font-mono text-sm text-muted-foreground">
           {hydrated ? `${items.length} ingredient${items.length === 1 ? '' : 's'} on hand` : 'Loading pantry…'}
         </Text>
         <Button onPress={() => void suggest()} disabled={loading || !hydrated}>
-          <ChefHat color="#FFFFFF" size={18} />
+          <ChefHat color={colors.onPrimary} size={18} />
           <Text>{loading ? 'Thinking…' : 'Suggest recipes'}</Text>
         </Button>
-        <ErrorNotice title="Could not find recipes" message={error} />
+        {error && <Notice tone="danger" title="Could not find recipes" body={error} />}
         {recipes.length > 0 && (
           <View className="gap-3">
             <View className="flex-row items-baseline justify-between">
@@ -72,6 +77,6 @@ export default function CookScreen() {
           </Card>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

@@ -71,12 +71,12 @@ export function Button({
     <TextClassContext.Provider value={`${textClass[variant]} font-sans-bold`}>
       <Pressable
         accessibilityRole="button"
-        className={`items-center justify-center gap-2 rounded-full ${variantClass[variant]} ${sizeClass[size]} ${fullWidth ? 'w-full' : ''} ${className ?? ''}`}
+        className={`flex-row items-center justify-center gap-2 rounded-full ${variantClass[variant]} ${sizeClass[size]} ${fullWidth ? 'w-full' : ''} ${className ?? ''}`}
         disabled={disabled || loading}
         haptic="light"
         {...props}>
         {loading ? (
-          <ActivityIndicator color={normalizedVariant === 'primary' || normalizedVariant === 'danger' ? '#FFFFFF' : undefined} size="small" />
+          <ActivityIndicator color={normalizedVariant === 'primary' || normalizedVariant === 'danger' ? colors.onPrimary : colors.text} size="small" />
         ) : (
           <>
             {LeadingIcon && <LeadingIcon color={iconColor} size={iconSize} strokeWidth={2} />}

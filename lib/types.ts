@@ -65,6 +65,6 @@ export type KrogerMatch = {
 
 export type KrogerPriceResult = {
   store: KrogerStore | null;
-  results: Array<{ name: string; match: KrogerMatch | null }>;
+  results: { name: string; match: KrogerMatch | null }[];
   reason?: string;
 };

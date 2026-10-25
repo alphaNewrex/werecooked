@@ -1,18 +1,21 @@
 import { BookmarkPlus, Check, ExternalLink, Play, ShoppingBasket } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, Platform, SafeAreaView, ScrollView, Share, View } from 'react-native';
+import { Linking, Platform, ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { ErrorNotice } from '@/components/ErrorNotice';
+import { useFeedback } from '@/components/feedback';
+import { Screen } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Notice } from '@/components/ui/notice';
 import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import { postJson } from '@/lib/api';
 import { useLibrary } from '@/lib/library';
 import { getCurrentRecipe } from '@/lib/recipe-store';
+import { useTheme } from '@/lib/theme';
 import type { CurrentRecipe } from '@/lib/recipe-store';
 import type { KrogerPriceResult } from '@/lib/types';
 
@@ -21,6 +24,8 @@ const tornPath =
 
 export default function RecipeScreen() {
   const router = useRouter();
+  const { toast } = useFeedback();
+  const { colors } = useTheme();
   const { hydrated: libraryHydrated, cookbookEntryFor, saveToCookbook } = useLibrary();
   const [current, setCurrent] = useState<CurrentRecipe | null>(null);
   const [savedEntry, setSavedEntry] = useState(false);
@@ -117,7 +122,7 @@ export default function RecipeScreen() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try again.';
       setGroceryError(message);
-      Alert.alert('Could not make a shopping list', message);
+      toast({ message: `Could not make a shopping list: ${message}`, tone: 'danger' });
     } finally {
       setGroceryLoading(false);
     }
@@ -125,44 +130,44 @@ export default function RecipeScreen() {
 
   if (!recipe) {
     return (
-      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+      <Screen scroll={false}>
         <View className="flex-1 items-center justify-center gap-3 p-8">
           <Text className="font-display text-2xl">No recipe selected</Text>
           <Button variant="ghost" onPress={() => router.back()}><Text>Go back</Text></Button>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   const have = recipe.ingredients.filter((item) => item.haveIt);
 
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+    <Screen scroll={false}>
       <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-5 p-5 pb-32" showsVerticalScrollIndicator={false}>
-        <Text className="font-mono-medium text-xs uppercase tracking-widest text-tomato">
+        <Text className="font-mono-medium text-xs uppercase tracking-widest text-primary">
           {recipe.timeMinutes} min · serves {recipe.servings}
         </Text>
-        <Text className="font-display text-4xl leading-[1.05]">{recipe.title}</Text>
+        <Text variant="display-lg">{recipe.title}</Text>
         <Text className="-mt-2 text-base leading-6 text-muted-foreground">{recipe.description}</Text>
         {current?.source.notes && (
-          <Card className="gap-2 rounded-2xl border-leaf-soft bg-leaf-soft p-4 shadow-none">
-            <Text className="font-mono-medium text-xs uppercase tracking-widest text-leaf">What we could read</Text>
+          <Card className="gap-2 rounded-2xl border-success-soft bg-success-soft p-4 shadow-none">
+            <Text className="font-mono-medium text-xs uppercase tracking-widest text-success">What we could read</Text>
             <Text className="leading-5 text-foreground">{current.source.notes}</Text>
           </Card>
         )}
 
-        <Card className="flex-row items-center gap-3 rounded-2xl border-0 bg-leaf-soft p-4 shadow-none">
-          <Text className="font-display text-4xl text-leaf">{have.length}</Text>
-          <View><Text className="font-sans-bold">ingredients</Text><Text variant="muted">already in your pantry</Text></View>
+        <Card className="flex-row items-center gap-3 rounded-2xl border-0 bg-success-soft p-4 shadow-none">
+          <Text className="font-display text-4xl text-success">{have.length}</Text>
+          <View><Text className="font-sans-bold">{have.length === 1 ? 'ingredient' : 'ingredients'}</Text><Text variant="muted">already in your pantry</Text></View>
         </Card>
 
         <Text className="font-display text-2xl">Ingredients</Text>
         <Card className="gap-3 rounded-2xl border-border bg-card p-4">
-          <Text className="font-mono-medium text-xs uppercase tracking-widest text-leaf">You have</Text>
+          <Text className="font-mono-medium text-xs uppercase tracking-widest text-success">You have</Text>
           {have.length === 0 && <Text variant="muted">Nothing from your pantry yet.</Text>}
           {have.map((item, index) => (
             <View className="flex-row items-center gap-2" key={`have-${index}-${item.name}`}>
-              <Badge variant="secondary" className="border-0 bg-leaf-soft"><Check color="#2F8F4E" size={14} /></Badge>
+              <Badge variant="secondary" className="border-0 bg-success-soft"><Check color={colors.success} size={14} /></Badge>
               <Text className="flex-1">{item.amount} {item.name}</Text>
             </View>
           ))}
@@ -171,8 +176,8 @@ export default function RecipeScreen() {
         <View className="gap-0">
           <Card className="gap-3 rounded-t-2xl rounded-b-none border-border bg-card p-4 pb-5">
             <View className="flex-row items-center justify-between">
-              <Text className="font-mono-medium text-xs uppercase tracking-widest text-tomato">You need</Text>
-              {krogerPricing?.store && <Text testID="kroger-store" className="max-w-[55%] text-right font-mono text-[10px] text-muted-foreground">{krogerPricing.store.name} · {krogerPricing.store.address}</Text>}
+            <Text className="font-mono-medium text-xs uppercase tracking-widest text-primary">You need</Text>
+              {krogerPricing?.store && <Text testID="kroger-store" className="max-w-xs text-right" variant="numeric-sm" tone="muted">{krogerPricing.store.name} · {krogerPricing.store.address}</Text>}
             </View>
             {krogerLoading && <Text variant="muted" className="font-mono text-xs">Checking Kroger prices…</Text>}
             {missing.length === 0 && <Text variant="muted">Nothing extra — you’re all set.</Text>}
@@ -185,16 +190,16 @@ export default function RecipeScreen() {
                 <View className="mb-1 flex-1 border-b border-dotted border-border" />
                 {match ? (
                   <View testID="kroger-price" className="items-end">
-                    <View className="flex-row items-baseline gap-1 rounded-full bg-butter-soft px-2 py-1">
+                    <View className="flex-row items-baseline gap-1 rounded-full bg-warning-soft px-2 py-1">
                       <Text className="font-mono-medium text-xs text-foreground">${match.priceUsd.toFixed(2)}</Text>
-                      <Text className="font-mono text-[10px] text-leaf">Kroger</Text>
+                      <Text variant="numeric-sm" tone="success">Kroger</Text>
                     </View>
-                    {match.onSale && <Text className="font-mono text-[10px] text-muted-foreground line-through">${match.regularUsd.toFixed(2)}</Text>}
+                    {match.onSale && <Text variant="numeric-sm" tone="muted" className="line-through">${match.regularUsd.toFixed(2)}</Text>}
                   </View>
                 ) : (
-                  <View className="flex-row items-baseline gap-1 rounded-full bg-tomato-soft px-2 py-1">
+                  <View className="flex-row items-baseline gap-1 rounded-full bg-primary-soft px-2 py-1">
                     <Text className="font-mono-medium text-xs text-foreground">~${(ingredient.estPriceUsd ?? 0).toFixed(2)}</Text>
-                    <Text className="font-mono text-[10px] text-tomato">est.</Text>
+                    <Text variant="numeric-sm" tone="primary">est.</Text>
                   </View>
                 )}
               </View>
@@ -202,25 +207,25 @@ export default function RecipeScreen() {
             <Separator className="my-1" />
             <View className="flex-row items-center justify-between gap-2">
               <Text className="font-mono-medium text-sm">TOTAL ${total.toFixed(2)}</Text>
-              <Text variant="muted" className="font-mono text-[10px]">{krogerCount} Kroger prices, {estimateCount} estimates</Text>
+              <Text variant="numeric-sm" tone="muted">{krogerCount} Kroger prices, {estimateCount} estimates</Text>
             </View>
           </Card>
           <Svg height={16} width="100%" viewBox="0 0 390 16" preserveAspectRatio="none">
-            <Path d={tornPath} fill="#FFFFFF" />
+            <Path d={tornPath} fill={colors.surface} />
           </Svg>
         </View>
 
         {missing.length > 0 && (
           <Button onPress={() => void getGroceries()} disabled={groceryLoading} className="-mt-2">
-            <ShoppingBasket color="#FFFFFF" size={18} />
+            <ShoppingBasket color={colors.onPrimary} size={18} />
             <Text>{groceryLoading ? 'Preparing list…' : 'Get groceries'}</Text>
           </Button>
         )}
-        <ErrorNotice title="Could not make a shopping list" message={groceryError} />
+        {groceryError && <Notice tone="danger" title="Could not make a shopping list" body={groceryError} />}
         {groceryUrl && (
           <Card className="gap-3 rounded-2xl border-border bg-card p-4">
             <Text className="font-sans-bold text-lg">Your Instacart list is ready</Text>
-            <Button variant="outline" onPress={() => void openGroceryUrl(groceryUrl)}><ExternalLink color="#18201B" size={16} /><Text>Open Instacart list</Text></Button>
+            <Button variant="outline" onPress={() => void openGroceryUrl(groceryUrl)}><ExternalLink color={colors.text} size={16} /><Text>Open Instacart list</Text></Button>
           </Card>
         )}
         {shoppingList && (
@@ -230,18 +235,18 @@ export default function RecipeScreen() {
           </Card>
         )}
 
-        <View className="gap-2">
+        <View className="gap-3">
           <Button onPress={saveRecipe} disabled={isSaved} variant={isSaved ? 'secondary' : 'outline'}>
-            <BookmarkPlus color={isSaved ? '#2F8F4E' : '#18201B'} size={18} />
+            <BookmarkPlus color={isSaved ? colors.success : colors.text} size={18} />
             <Text>{isSaved ? 'Saved to cookbook ✓' : 'Save to cookbook'}</Text>
           </Button>
           <Button onPress={() => router.push('/cook-mode')}>
-            <Play color="#FFFFFF" size={17} fill="#FFFFFF" />
+            <Play color={colors.onPrimary} size={17} fill={colors.onPrimary} />
             <Text>Start cooking</Text>
           </Button>
           {current?.source.url && (
             <Button variant="ghost" onPress={() => void Linking.openURL(current.source.url!)}>
-              <ExternalLink color="#5E6B62" size={16} />
+              <ExternalLink color={colors.textMuted} size={16} />
               <Text>Open original reel</Text>
             </Button>
           )}
@@ -251,12 +256,12 @@ export default function RecipeScreen() {
         <View className="gap-3">
           {recipe.steps.map((step, index) => (
             <View className="flex-row items-start gap-3" key={`${index}-${step}`} testID="method-step">
-              <Text className="w-6 font-mono-medium text-leaf">{String(index + 1).padStart(2, '0')}</Text>
+              <Text className="w-6 font-mono-medium text-success">{String(index + 1).padStart(2, '0')}</Text>
               <Text className="flex-1 leading-6 text-muted-foreground">{step}</Text>
             </View>
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

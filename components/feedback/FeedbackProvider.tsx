@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, Platform, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { enterAnimation, exitAnimation } from '@/lib/design/motion';
@@ -48,6 +48,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   );
 
   const confirm = useCallback((options: ConfirmOptions) => {
+    if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
+      return Promise.resolve(globalThis.confirm(`${options.title}\n\n${options.message}`));
+    }
     setConfirmation(options);
     return new Promise<boolean>((resolve) => {
       resolver.current = resolve;
@@ -76,7 +79,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             entering={enterAnimation()}
             exiting={exitAnimation()}
             key={item.id}
-            className={`pointer-events-auto w-full max-w-[420px] rounded-xl border border-border-strong bg-surface-raised p-3 shadow-lg`}>
+            className={`pointer-events-auto w-full max-w-md rounded-xl border border-border-strong bg-surface-raised p-3 shadow-lg`}>
             <View className="flex-row items-center justify-between gap-3">
               <Text variant="body-sm" tone={item.tone === 'danger' ? 'danger-ink' : 'text'}>{item.message}</Text>
               {item.action && <Pressable onPress={item.action.onPress}><Text variant="caption" tone="primary">{item.action.label}</Text></Pressable>}
@@ -87,7 +90,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       <Modal animationType="none" transparent visible={Boolean(confirmation)} onRequestClose={() => resolveConfirmation(false)}>
         {confirmation && (
           <View className="flex-1 items-center justify-center bg-black/50 p-5">
-            <Animated.View entering={enterAnimation()} className="w-full max-w-[420px] gap-3 rounded-xl bg-surface-raised p-5 shadow-xl">
+            <Animated.View entering={enterAnimation()} className="w-full max-w-md gap-3 rounded-xl bg-surface-raised p-5 shadow-xl">
               <Text variant="title">{confirmation.title}</Text>
               <Text variant="body" tone="muted">{confirmation.message}</Text>
               <View className="flex-row justify-end gap-2 pt-2">

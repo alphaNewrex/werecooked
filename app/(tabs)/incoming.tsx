@@ -1,28 +1,27 @@
 import { Inbox } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Alert, Platform, SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
-import { LibraryEntryCard } from '@/components/LibraryEntryCard';
+import { useFeedback } from '@/components/feedback';
+import { Screen } from '@/components/layout';
+import { LibraryEntryCard } from '@/components/patterns/LibraryEntryCard';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useLibrary } from '@/lib/library';
 import { setCurrentRecipe } from '@/lib/recipe-store';
+import { useTheme } from '@/lib/theme';
 import type { LibraryEntry } from '@/lib/types';
 
 export default function IncomingScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const { confirm: confirmFeedback } = useFeedback();
   const { incoming, hydrated, cookbookEntryFor, removeIncoming } = useLibrary();
 
-  function confirmRemove(entry: LibraryEntry) {
-    const remove = () => removeIncoming(entry.id);
-    if (Platform.OS === 'web') {
-      if (globalThis.confirm?.(`Remove ${entry.recipe.title} from Incoming?`) ?? true) remove();
-      return;
+  async function confirmRemove(entry: LibraryEntry) {
+    if (await confirmFeedback({ title: 'Remove from Incoming?', message: entry.recipe.title, confirmLabel: 'Remove', destructive: true })) {
+      removeIncoming(entry.id);
     }
-    Alert.alert('Remove from Incoming?', entry.recipe.title, [
-      { text: 'Keep' },
-      { text: 'Remove', style: 'destructive', onPress: remove },
-    ]);
   }
 
   function openEntry(entry: LibraryEntry) {
@@ -36,14 +35,14 @@ export default function IncomingScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+    <Screen scroll={false}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-32" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <View className="gap-1">
-            <Text className="font-display text-5xl leading-[1.05]">Incoming</Text>
+            <Text variant="display-xl">Incoming</Text>
             <Text className="font-mono text-sm text-muted-foreground">Your reel recipes, ready when you are.</Text>
           </View>
-          <Inbox color="#F0532F" size={28} strokeWidth={2.2} />
+          <Inbox color={colors.primary} size={28} strokeWidth={2.2} />
         </View>
         {!hydrated ? (
           <Text variant="muted">Loading your recipes…</Text>
@@ -67,6 +66,6 @@ export default function IncomingScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

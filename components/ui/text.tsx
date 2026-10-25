@@ -48,17 +48,17 @@ export type TextTone =
   | 'on-primary';
 
 const legacyVariants: Partial<Record<TextVariant, string>> = {
-  h1: 'font-display text-center text-4xl tracking-tight',
-  h2: 'font-display border-border border-b pb-2 text-3xl tracking-tight',
-  h3: 'font-display text-2xl tracking-tight',
-  h4: 'font-display text-xl tracking-tight',
-  p: 'mt-3 leading-7 sm:mt-6',
+  h1: 'text-center',
+  h2: 'border-border border-b pb-2',
+  h3: '',
+  h4: '',
+  p: 'mt-3',
   blockquote: 'mt-4 border-l-2 pl-3 italic sm:mt-6 sm:pl-6',
-  code: 'bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold',
-  lead: 'text-muted-foreground text-xl',
-  large: 'text-lg font-semibold',
-  small: 'text-sm font-medium leading-none',
-  muted: 'text-muted-foreground text-sm',
+  code: 'bg-muted relative rounded px-1 py-0.5 font-mono',
+  lead: 'text-muted-foreground',
+  large: '',
+  small: 'leading-none',
+  muted: 'text-muted-foreground',
 };
 
 const toneToColor = {

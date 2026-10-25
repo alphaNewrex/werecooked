@@ -74,7 +74,7 @@ function Swatches() {
   return (
     <View className="flex-row flex-wrap gap-2">
       {COLOR_NAMES.map((name) => (
-        <View className="w-[30%] min-w-[102px] gap-1" key={name}>
+        <View className="w-1/3 min-w-24 gap-1" key={name}>
           <View className="h-12 rounded-md border border-border-strong" style={{ backgroundColor: colors[name] }} />
           <Text variant="caption">{name}</Text>
           <Text variant="numeric-sm" tone="muted">{tokens.colors[scheme][name]}</Text>
@@ -85,7 +85,7 @@ function Swatches() {
 }
 
 function MotionPlayground() {
-  const { toast, confirm, notify } = useFeedback();
+  const { toast, confirm: confirmFeedback, notify } = useFeedback();
   const [key, setKey] = useState(0);
   const [reduced, setReduced] = useState(false);
   const { reducedMotion } = useMotionPreferences();
@@ -110,7 +110,7 @@ function MotionPlayground() {
       <View className="flex-row flex-wrap gap-2">
         <Button size="sm" onPress={() => setKey((value) => value + 1)}><Text>Enter / exit</Text></Button>
         <Button size="sm" variant="secondary" onPress={() => toast({ message: 'Added 9 items to cart', action: { label: 'Undo', onPress: () => undefined }, tone: 'success' })}><Text>Toast</Text></Button>
-        <Button size="sm" variant="outline" onPress={() => void confirm({ title: 'Clear pantry?', message: 'This removes every saved pantry item.', confirmLabel: 'Clear', destructive: true })}><Text>Confirm</Text></Button>
+        <Button size="sm" variant="outline" onPress={() => void confirmFeedback({ title: 'Clear pantry?', message: 'This removes every saved pantry item.', confirmLabel: 'Clear', destructive: true })}><Text>Confirm</Text></Button>
         <Button size="sm" variant="ghost" onPress={() => notify({ title: 'Sync complete', message: 'Your pantry is up to date.', tone: 'success' })}><Text>Notify</Text></Button>
       </View>
     </View>
@@ -127,7 +127,7 @@ export default function DesignGuide() {
         contentContainerStyle={{ alignItems: 'center', backgroundColor: colors.bg, padding: 20, paddingBottom: 64 }}
         nativeID="design-scroll"
         style={{ backgroundColor: colors.bg }}>
-        <View className="w-full max-w-[620px] gap-8">
+        <View className="w-full max-w-xl gap-8">
           <View className="gap-2">
             <View className="flex-row items-center justify-between">
               <View className="gap-1">
@@ -162,7 +162,7 @@ export default function DesignGuide() {
           <Section title="RADIUS / elevation / icons">
             <View className="flex-row flex-wrap gap-2">
               {Object.entries(radius).map(([name, value]) => (
-                <View className="h-16 flex-1 min-w-[90px] items-center justify-center border border-border bg-surface" key={name} style={{ borderRadius: value }}>
+                <View className="h-16 min-w-24 flex-1 items-center justify-center border border-border bg-surface" key={name} style={{ borderRadius: value }}>
                   <Text variant="caption">{name}</Text>
                   <Text variant="numeric-sm" tone="muted">{value}</Text>
                 </View>

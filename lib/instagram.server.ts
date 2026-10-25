@@ -88,7 +88,7 @@ export function parseCaptionFromHtml(html: string) {
 }
 
 export async function fetchReelCaption(code: string): Promise<CaptionResult | null> {
-  const requests: Array<{ url: string; source: CaptionResult['source']; userAgent?: string }> = [
+  const requests: { url: string; source: CaptionResult['source']; userAgent?: string }[] = [
     {
       url: `https://www.instagram.com/p/${encodeURIComponent(code)}/embed/captioned/`,
       source: 'embed',

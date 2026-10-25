@@ -1,5 +1,7 @@
-import { View, type ViewProps } from 'react-native';
+import { Platform, View, type ViewProps } from 'react-native';
 
+import { tokens } from '@/lib/design';
+import { useTheme } from '@/lib/theme';
 import { Pressable, type PressableProps } from './pressable';
 import { Text, TextClassContext } from './text';
 
@@ -34,16 +36,30 @@ export function Card({
   elevation = 'card',
   onPress,
   padding = 'md',
+  style,
   tone = 'default',
   ...props
 }: CardProps) {
-  const classes = `rounded-lg border ${toneClass[tone]} ${paddingClass[padding]} ${elevation === 'none' ? '' : 'shadow-sm'} ${className ?? ''}`;
+  const { colors } = useTheme();
+  const classes = `rounded-lg border ${toneClass[tone]} ${paddingClass[padding]} ${className ?? ''}`;
+  const elevationToken = elevation === 'none' ? undefined : tokens.elevation[elevation];
+  const elevationStyle = elevationToken
+    ? Platform.OS === 'web'
+      ? ({ boxShadow: `0 ${elevationToken.shadowOffset.height}px ${elevationToken.shadowRadius}px ${colors.text}1A` } as object)
+      : {
+          shadowColor: colors.text,
+          shadowOpacity: elevationToken.shadowOpacity,
+          shadowRadius: elevationToken.shadowRadius,
+          shadowOffset: elevationToken.shadowOffset,
+          elevation: elevationToken.elevation,
+        }
+    : undefined;
   return (
     <TextClassContext.Provider value="text-text">
       {onPress ? (
-        <Pressable className={classes} onPress={onPress} {...props} />
+        <Pressable className={classes} onPress={onPress} style={[elevationStyle, style]} {...props} />
       ) : (
-        <View className={classes} {...props} />
+        <View className={classes} style={[elevationStyle, style]} {...props} />
       )}
     </TextClassContext.Provider>
   );

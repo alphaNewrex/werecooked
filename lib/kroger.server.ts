@@ -28,10 +28,10 @@ type KrogerProduct = {
   productId?: string;
   description?: string;
   brand?: string | { name?: string };
-  items?: Array<{
+  items?: {
     size?: string;
     price?: { regular?: number; promo?: number };
-  }>;
+  }[];
 };
 
 function configuredCredentials() {

@@ -77,7 +77,7 @@ function RootLayoutNav() {
       <Stack screenOptions={{ contentStyle: { backgroundColor: NAV_THEME[scheme].colors.background } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="recipe" options={{ title: 'Recipe' }} />
-        <Stack.Screen name="cook-mode" options={{ title: 'Cook mode' }} />
+        <Stack.Screen name="cook-mode" options={{ title: 'Cook mode', animation: 'fade_from_bottom' }} />
       </Stack>
       <PortalHost />
     </ThemeProvider>
