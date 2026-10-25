@@ -49,4 +49,7 @@ Register a Kroger app at https://developer.kroger.com in the Production environm
 
 - `npm install`
 - `npx expo start`
-- `npx tsc --noEmit`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run test:e2e` (Playwright e2e hits live services and is manual)

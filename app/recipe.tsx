@@ -1,4 +1,4 @@
-import { BookmarkPlus, Check, Clock, ExternalLink, Play, ShoppingBasket } from 'lucide-react-native';
+import { BookmarkPlus, Check, ExternalLink, Play, ShoppingBasket } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Linking, Platform, SafeAreaView, ScrollView, Share, View } from 'react-native';
