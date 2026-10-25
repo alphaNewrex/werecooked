@@ -137,7 +137,7 @@ export default function PantryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-52" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-8" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <Text className="font-display text-5xl leading-[1.05]">Pantry</Text>
           <Text testID="pantry-count" className="font-mono-medium text-sm text-muted-foreground">
@@ -240,9 +240,7 @@ export default function PantryScreen() {
         )}
       </ScrollView>
 
-      <View
-        pointerEvents="box-none"
-        className="absolute bottom-20 left-0 right-0 h-36 flex-row items-start justify-between bg-background px-5 pt-4">
+      <View className="flex-row items-center justify-between border-t border-border bg-background px-5 pb-2 pt-3">
         <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Add item" onPress={() => { setEditingId(null); setFormOpen(true); }}>
           <Plus color="#18201B" size={21} />
         </Button>
