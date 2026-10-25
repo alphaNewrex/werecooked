@@ -1,89 +1,124 @@
 import { cn } from '@/lib/utils';
 import { Slot } from '@rn-primitives/slot';
-import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
-import { Platform, Text as RNText, type Role } from 'react-native';
+import { Platform, Text as RNText } from 'react-native';
 
-const textVariants = cva(
-  cn(
-    'font-sans text-foreground text-base',
-    Platform.select({
-      web: 'select-text',
-    })
-  ),
-  {
-    variants: {
-      variant: {
-        default: '',
-        h1: cn(
-          'font-display text-center text-4xl tracking-tight',
-          Platform.select({ web: 'scroll-m-20 text-balance' })
-        ),
-        h2: cn(
-          'font-display border-border border-b pb-2 text-3xl tracking-tight',
-          Platform.select({ web: 'scroll-m-20 first:mt-0' })
-        ),
-        h3: cn('font-display text-2xl tracking-tight', Platform.select({ web: 'scroll-m-20' })),
-        h4: cn('font-display text-xl tracking-tight', Platform.select({ web: 'scroll-m-20' })),
-        p: 'mt-3 leading-7 sm:mt-6',
-        blockquote: 'mt-4 border-l-2 pl-3 italic sm:mt-6 sm:pl-6',
-        code: cn(
-          'bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold'
-        ),
-        lead: 'text-muted-foreground text-xl',
-        large: 'text-lg font-semibold',
-        small: 'text-sm font-medium leading-none',
-        muted: 'text-muted-foreground text-sm',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-    },
-  }
-);
+import { useTheme } from '@/lib/theme';
 
-type TextVariantProps = VariantProps<typeof textVariants>;
+export type TextVariant =
+  | 'default'
+  | 'display-xl'
+  | 'display-lg'
+  | 'display-md'
+  | 'title'
+  | 'body-lg'
+  | 'body'
+  | 'body-strong'
+  | 'body-sm'
+  | 'caption'
+  | 'label'
+  | 'numeric'
+  | 'numeric-sm'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'p'
+  | 'blockquote'
+  | 'code'
+  | 'lead'
+  | 'large'
+  | 'small'
+  | 'muted';
 
-type TextVariant = NonNullable<TextVariantProps['variant']>;
+export type TextTone =
+  | 'text'
+  | 'muted'
+  | 'subtle'
+  | 'primary'
+  | 'primary-ink'
+  | 'success'
+  | 'success-ink'
+  | 'warning'
+  | 'warning-ink'
+  | 'danger'
+  | 'danger-ink'
+  | 'info'
+  | 'info-ink'
+  | 'on-primary';
 
-const ROLE: Partial<Record<TextVariant, Role>> = {
-  h1: 'heading',
-  h2: 'heading',
-  h3: 'heading',
-  h4: 'heading',
-  blockquote: Platform.select({ web: 'blockquote' as Role }),
-  code: Platform.select({ web: 'code' as Role }),
+const legacyVariants: Partial<Record<TextVariant, string>> = {
+  h1: 'font-display text-center text-4xl tracking-tight',
+  h2: 'font-display border-border border-b pb-2 text-3xl tracking-tight',
+  h3: 'font-display text-2xl tracking-tight',
+  h4: 'font-display text-xl tracking-tight',
+  p: 'mt-3 leading-7 sm:mt-6',
+  blockquote: 'mt-4 border-l-2 pl-3 italic sm:mt-6 sm:pl-6',
+  code: 'bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold',
+  lead: 'text-muted-foreground text-xl',
+  large: 'text-lg font-semibold',
+  small: 'text-sm font-medium leading-none',
+  muted: 'text-muted-foreground text-sm',
 };
 
-const ARIA_LEVEL: Partial<Record<TextVariant, string>> = {
-  h1: '1',
-  h2: '2',
-  h3: '3',
-  h4: '4',
-};
+const toneToColor = {
+  text: 'text',
+  muted: 'textMuted',
+  subtle: 'textSubtle',
+  primary: 'primary',
+  'primary-ink': 'primaryInk',
+  success: 'success',
+  'success-ink': 'successInk',
+  warning: 'warning',
+  'warning-ink': 'warningInk',
+  danger: 'danger',
+  'danger-ink': 'dangerInk',
+  info: 'info',
+  'info-ink': 'infoInk',
+  'on-primary': 'onPrimary',
+} as const;
 
-const TextClassContext = React.createContext<string | undefined>(undefined);
+export const TextClassContext = React.createContext<string | undefined>(undefined);
 
-function Text({
+export function Text({
   className,
+  style,
   asChild = false,
   variant = 'default',
+  tone,
   ...props
-}: React.ComponentProps<typeof RNText> &
-  React.RefAttributes<typeof RNText> &
-  TextVariantProps & {
-    asChild?: boolean;
-  }) {
+}: React.ComponentProps<typeof RNText> & {
+  asChild?: boolean;
+  tone?: TextTone;
+  variant?: TextVariant;
+}) {
   const textClass = React.useContext(TextClassContext);
+  const { colors, type } = useTheme();
+  const role = type[variant];
   const Component = asChild ? Slot : RNText;
+  const roleStyle = role
+    ? {
+        color: tone ? colors[toneToColor[tone]] : colors.text,
+        fontFamily: role.fontFamily,
+        fontSize: role.size,
+        lineHeight: role.lineHeight,
+        letterSpacing: role.letterSpacing,
+        textTransform: role.textTransform,
+      }
+    : undefined;
+
   return (
     <Component
-      className={cn(textVariants({ variant }), textClass, className)}
-      role={variant ? ROLE[variant] : undefined}
-      aria-level={variant ? ARIA_LEVEL[variant] : undefined}
+      className={cn(
+        'text-text font-sans text-base',
+        Platform.select({ web: 'select-text' }),
+        legacyVariants[variant],
+        textClass,
+        className
+      )}
+      role={variant.startsWith('h') ? 'heading' : undefined}
+      style={[roleStyle, style]}
       {...props}
     />
   );
 }
-
-export { Text, TextClassContext };

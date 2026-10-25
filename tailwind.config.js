@@ -1,4 +1,5 @@
 const { hairlineWidth } = require('nativewind/theme');
+const tokens = require('./lib/design/tokens.js');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -8,46 +9,82 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        leaf: '#2F8F4E',
-        'leaf-soft': '#DCEFE2',
-        tomato: '#F0532F',
-        'tomato-soft': '#FDE3DC',
-        butter: '#F6D25C',
-        'butter-soft': '#FCF3CF',
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        bg: 'rgb(var(--color-bg) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        'surface-muted': 'rgb(var(--color-surface-muted) / <alpha-value>)',
+        'surface-raised': 'rgb(var(--color-surface-raised) / <alpha-value>)',
+        text: 'rgb(var(--color-text) / <alpha-value>)',
+        'text-muted': 'rgb(var(--color-text-muted) / <alpha-value>)',
+        'text-subtle': 'rgb(var(--color-text-subtle) / <alpha-value>)',
+        'border-strong': 'rgb(var(--color-border-strong) / <alpha-value>)',
+        'on-primary': 'rgb(var(--color-on-primary) / <alpha-value>)',
+        'primary-soft': 'rgb(var(--color-primary-soft) / <alpha-value>)',
+        'primary-ink': 'rgb(var(--color-primary-ink) / <alpha-value>)',
+        success: 'rgb(var(--color-success) / <alpha-value>)',
+        'success-soft': 'rgb(var(--color-success-soft) / <alpha-value>)',
+        'success-ink': 'rgb(var(--color-success-ink) / <alpha-value>)',
+        warning: 'rgb(var(--color-warning) / <alpha-value>)',
+        'warning-soft': 'rgb(var(--color-warning-soft) / <alpha-value>)',
+        'warning-ink': 'rgb(var(--color-warning-ink) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger) / <alpha-value>)',
+        'danger-soft': 'rgb(var(--color-danger-soft) / <alpha-value>)',
+        'danger-ink': 'rgb(var(--color-danger-ink) / <alpha-value>)',
+        info: 'rgb(var(--color-info) / <alpha-value>)',
+        'info-soft': 'rgb(var(--color-info-soft) / <alpha-value>)',
+        'info-ink': 'rgb(var(--color-info-ink) / <alpha-value>)',
+        have: 'rgb(var(--color-have) / <alpha-value>)',
+        partial: 'rgb(var(--color-partial) / <alpha-value>)',
+        need: 'rgb(var(--color-need) / <alpha-value>)',
+        price: 'rgb(var(--color-price) / <alpha-value>)',
+        staple: 'rgb(var(--color-staple) / <alpha-value>)',
+        // legacy: remove after migration
+        leaf: 'rgb(var(--color-success) / <alpha-value>)',
+        'leaf-soft': 'rgb(var(--color-success-soft) / <alpha-value>)',
+        tomato: 'rgb(var(--color-primary) / <alpha-value>)',
+        'tomato-soft': 'rgb(var(--color-primary-soft) / <alpha-value>)',
+        butter: 'rgb(var(--color-warning) / <alpha-value>)',
+        'butter-soft': 'rgb(var(--color-warning-soft) / <alpha-value>)',
+        // legacy: remove after migration
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        input: 'rgb(var(--color-border-strong) / <alpha-value>)',
+        ring: 'rgb(var(--color-primary) / <alpha-value>)',
+        background: 'rgb(var(--color-bg) / <alpha-value>)',
+        foreground: 'rgb(var(--color-text) / <alpha-value>)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+          foreground: 'rgb(var(--color-on-primary) / <alpha-value>)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'rgb(var(--color-surface-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--color-text) / <alpha-value>)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'rgb(var(--color-danger) / <alpha-value>)',
+          foreground: 'rgb(var(--color-on-primary) / <alpha-value>)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'rgb(var(--color-surface-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--color-text-muted) / <alpha-value>)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'rgb(var(--color-surface-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--color-text) / <alpha-value>)',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'rgb(var(--color-surface-raised) / <alpha-value>)',
+          foreground: 'rgb(var(--color-text) / <alpha-value>)',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
+          foreground: 'rgb(var(--color-text) / <alpha-value>)',
         },
       },
+      fontSize: Object.fromEntries(
+        Object.entries(tokens.type).map(([name, role]) => [
+          name,
+          [`${role.size}px`, { lineHeight: `${role.lineHeight}px`, letterSpacing: `${role.letterSpacing}px` }],
+        ])
+      ),
       fontFamily: {
         display: ['BricolageGrotesque_800ExtraBold'],
         'display-bold': ['BricolageGrotesque_700Bold'],
@@ -56,11 +93,15 @@ module.exports = {
         'sans-bold': ['DMSans_700Bold'],
         mono: ['IBMPlexMono_400Regular'],
         'mono-medium': ['IBMPlexMono_500Medium'],
+        numeric: ['IBMPlexMono_500Medium'],
+        label: ['IBMPlexMono_500Medium'],
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        full: 'var(--radius-full)',
       },
       borderWidth: {
         hairline: hairlineWidth(),

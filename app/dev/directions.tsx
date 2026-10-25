@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -1262,6 +1262,7 @@ export default function DirectionsPrototype() {
 
   const caption = useMemo(() => `${tokens.name} · ${mode === 'light' ? 'day' : 'night'} study`, [mode, tokens.name]);
 
+  if (!__DEV__) return <Redirect href="/" />;
   if (!loaded && !error) return <LoadingScreen colors={colors} />;
 
   return (

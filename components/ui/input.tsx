@@ -1,29 +1,40 @@
-import { cn } from '@/lib/utils';
-import { Platform, TextInput } from 'react-native';
+import { TextInput as RNTextInput, View } from 'react-native';
 
-function Input({ className, ...props }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+import { useTheme } from '@/lib/theme';
+import { Text } from './text';
+
+export type InputProps = React.ComponentProps<typeof RNTextInput> & {
+  label?: string;
+  helperText?: string;
+  errorText?: string;
+  leadingIcon?: React.ComponentType<{ color?: string; size?: number; strokeWidth?: number }>;
+};
+
+export function Input({
+  className,
+  errorText,
+  helperText,
+  label,
+  leadingIcon: LeadingIcon,
+  ...props
+}: InputProps) {
+  const { colors } = useTheme();
   return (
-    <TextInput
-      className={cn(
-        'dark:bg-input/30 border-input bg-background text-foreground flex h-10 w-full min-w-0 flex-row items-center rounded-md border px-3 py-1 text-base leading-5 shadow-sm shadow-black/5 sm:h-9',
-        props.editable === false &&
-        cn(
-          'opacity-50',
-          Platform.select({ web: 'disabled:pointer-events-none disabled:cursor-not-allowed' })
-        ),
-        Platform.select({
-          web: cn(
-            'placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground outline-none transition-[color,box-shadow] md:text-sm',
-            'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
-            'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive'
-          ),
-          native: 'placeholder:text-muted-foreground/50',
-        }),
-        className
+    <View className="w-full gap-1.5">
+      {label && <Text variant="caption" tone="text">{label}</Text>}
+      <View className="flex-row items-center rounded-full border border-border-strong bg-surface-muted px-3">
+        {LeadingIcon && <LeadingIcon color={colors.textMuted} size={16} strokeWidth={2} />}
+        <RNTextInput
+          className={`h-10 min-w-0 flex-1 px-2 py-1 text-body text-text ${className ?? ''}`}
+          placeholderTextColor="#7C887F"
+          {...props}
+        />
+      </View>
+      {(errorText || helperText) && (
+        <Text variant="caption" tone={errorText ? 'danger-ink' : 'muted'}>
+          {errorText ?? helperText}
+        </Text>
       )}
-      {...props}
-    />
+    </View>
   );
 }
-
-export { Input };

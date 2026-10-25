@@ -1,51 +1,56 @@
 import { DarkTheme, DefaultTheme, type Theme } from 'expo-router/react-navigation';
+import { useColorScheme } from 'nativewind';
+import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
+
+import { tokens, type ColorScheme } from '@/lib/design';
 
 export const THEME = {
   light: {
-    background: 'hsl(72 21% 96%)',
-    foreground: 'hsl(135 14% 11%)',
-    card: 'hsl(0 0% 100%)',
-    cardForeground: 'hsl(135 14% 11%)',
-    popover: 'hsl(0 0% 100%)',
-    popoverForeground: 'hsl(135 14% 11%)',
-    primary: 'hsl(11 86% 56%)',
-    primaryForeground: 'hsl(0 0% 100%)',
-    secondary: 'hsl(108 20% 91%)',
-    secondaryForeground: 'hsl(135 14% 11%)',
-    muted: 'hsl(108 20% 91%)',
-    mutedForeground: 'hsl(137 6% 39%)',
-    accent: 'hsl(108 20% 91%)',
-    accentForeground: 'hsl(135 14% 11%)',
-    destructive: 'hsl(11 86% 56%)',
-    border: 'hsl(105 17% 87%)',
-    input: 'hsl(105 17% 87%)',
-    ring: 'hsl(11 86% 56%)',
-    radius: '0.75rem',
+    background: tokens.colors.light.bg,
+    foreground: tokens.colors.light.text,
+    card: tokens.colors.light.surface,
+    cardForeground: tokens.colors.light.text,
+    popover: tokens.colors.light.surfaceRaised,
+    popoverForeground: tokens.colors.light.text,
+    primary: tokens.colors.light.primary,
+    primaryForeground: tokens.colors.light.onPrimary,
+    secondary: tokens.colors.light.surfaceMuted,
+    secondaryForeground: tokens.colors.light.text,
+    muted: tokens.colors.light.surfaceMuted,
+    mutedForeground: tokens.colors.light.textMuted,
+    accent: tokens.colors.light.surfaceMuted,
+    accentForeground: tokens.colors.light.text,
+    destructive: tokens.colors.light.danger,
+    border: tokens.colors.light.border,
+    input: tokens.colors.light.borderStrong,
+    ring: tokens.colors.light.primary,
+    radius: `${tokens.radius.md}px`,
   },
   dark: {
-    background: 'hsl(135 14% 11%)',
-    foreground: 'hsl(72 21% 96%)',
-    card: 'hsl(135 12% 16%)',
-    cardForeground: 'hsl(72 21% 96%)',
-    popover: 'hsl(135 12% 16%)',
-    popoverForeground: 'hsl(72 21% 96%)',
-    primary: 'hsl(11 86% 62%)',
-    primaryForeground: 'hsl(135 14% 11%)',
-    secondary: 'hsl(135 12% 23%)',
-    secondaryForeground: 'hsl(72 21% 96%)',
-    muted: 'hsl(135 12% 23%)',
-    mutedForeground: 'hsl(108 12% 70%)',
-    accent: 'hsl(135 12% 23%)',
-    accentForeground: 'hsl(72 21% 96%)',
-    destructive: 'hsl(11 86% 62%)',
-    border: 'hsl(135 12% 28%)',
-    input: 'hsl(135 12% 28%)',
-    ring: 'hsl(11 86% 62%)',
-    radius: '0.75rem',
+    background: tokens.colors.dark.bg,
+    foreground: tokens.colors.dark.text,
+    card: tokens.colors.dark.surface,
+    cardForeground: tokens.colors.dark.text,
+    popover: tokens.colors.dark.surfaceRaised,
+    popoverForeground: tokens.colors.dark.text,
+    primary: tokens.colors.dark.primary,
+    primaryForeground: tokens.colors.dark.onPrimary,
+    secondary: tokens.colors.dark.surfaceMuted,
+    secondaryForeground: tokens.colors.dark.text,
+    muted: tokens.colors.dark.surfaceMuted,
+    mutedForeground: tokens.colors.dark.textMuted,
+    accent: tokens.colors.dark.surfaceMuted,
+    accentForeground: tokens.colors.dark.text,
+    destructive: tokens.colors.dark.danger,
+    border: tokens.colors.dark.border,
+    input: tokens.colors.dark.borderStrong,
+    ring: tokens.colors.dark.primary,
+    radius: `${tokens.radius.md}px`,
   },
 };
 
-export const NAV_THEME: Record<'light' | 'dark', Theme> = {
+export const NAV_THEME: Record<ColorScheme, Theme> = {
   light: {
     ...DefaultTheme,
     colors: {
@@ -69,3 +74,31 @@ export const NAV_THEME: Record<'light' | 'dark', Theme> = {
     },
   },
 };
+
+export function useResolvedScheme(): ColorScheme {
+  const { colorScheme } = useColorScheme();
+  const [scheme, setScheme] = useState<ColorScheme>(
+    Platform.OS === 'web' ? 'light' : colorScheme === 'dark' ? 'dark' : 'light'
+  );
+  useEffect(() => {
+    const resolved: ColorScheme = colorScheme === 'dark' ? 'dark' : 'light';
+    setScheme(resolved);
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', resolved === 'dark');
+    }
+  }, [colorScheme]);
+  return scheme;
+}
+
+export function useTheme() {
+  const scheme = useResolvedScheme();
+  return {
+    scheme,
+    colors: tokens.colors[scheme],
+    type: tokens.type,
+    radius: tokens.radius,
+    iconSize: tokens.iconSize,
+    elevation: tokens.elevation,
+    motion: tokens.motion,
+  };
+}

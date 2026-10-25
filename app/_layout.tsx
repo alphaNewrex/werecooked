@@ -15,12 +15,14 @@ import {
 import { Stack, ThemeProvider } from 'expo-router';
 import { PortalHost } from '@rn-primitives/portal';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { LibraryProvider } from '@/lib/library';
 import { PantryProvider } from '@/lib/pantry';
-import { NAV_THEME } from '@/lib/theme';
+import { NAV_THEME, useResolvedScheme } from '@/lib/theme';
+import { FeedbackProvider } from '@/components/feedback';
 import '../global.css';
 
 export {
@@ -59,16 +61,20 @@ export default function RootLayout() {
   return (
     <PantryProvider>
       <LibraryProvider>
-        <RootLayoutNav />
+        <FeedbackProvider>
+          <RootLayoutNav />
+        </FeedbackProvider>
       </LibraryProvider>
     </PantryProvider>
   );
 }
 
 function RootLayoutNav() {
+  const scheme = useResolvedScheme();
   return (
-    <ThemeProvider value={NAV_THEME.light}>
-      <Stack screenOptions={{ contentStyle: { backgroundColor: '#F7F8F3' } }}>
+    <ThemeProvider value={NAV_THEME[scheme]}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <Stack screenOptions={{ contentStyle: { backgroundColor: NAV_THEME[scheme].colors.background } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="recipe" options={{ title: 'Recipe' }} />
         <Stack.Screen name="cook-mode" options={{ title: 'Cook mode' }} />

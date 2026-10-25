@@ -1,106 +1,93 @@
-import { TextClassContext } from '@/components/ui/text';
-import { cn } from '@/lib/utils';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { Platform, Pressable } from 'react-native';
+import { ActivityIndicator } from 'react-native';
+import type { ComponentType, ReactNode } from 'react';
 
-const buttonVariants = cva(
-  cn(
-    'group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none',
-    Platform.select({
-      web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-    })
-  ),
-  {
-    variants: {
-      variant: {
-        default: cn(
-          'bg-primary active:bg-primary/90 shadow-sm shadow-black/5',
-          Platform.select({ web: 'hover:bg-primary/90' })
-        ),
-        destructive: cn(
-          'bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5',
-          Platform.select({
-            web: 'hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
-          })
-        ),
-        outline: cn(
-          'border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5',
-          Platform.select({
-            web: 'hover:bg-accent dark:hover:bg-input/50',
-          })
-        ),
-        secondary: cn(
-          'bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5',
-          Platform.select({ web: 'hover:bg-secondary/80' })
-        ),
-        ghost: cn(
-          'active:bg-accent dark:active:bg-accent/50',
-          Platform.select({ web: 'hover:bg-accent dark:hover:bg-accent/50' })
-        ),
-        link: '',
-      },
-      size: {
-        default: cn('h-10 px-4 py-2 sm:h-9', Platform.select({ web: 'has-[>svg]:px-3' })),
-        sm: cn('h-9 gap-1.5 rounded-md px-3 sm:h-8', Platform.select({ web: 'has-[>svg]:px-2.5' })),
-        lg: cn('h-11 rounded-md px-6 sm:h-10', Platform.select({ web: 'has-[>svg]:px-4' })),
-        icon: 'h-10 w-10 sm:h-9 sm:w-9',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-);
+import { useTheme } from '@/lib/theme';
 
-const buttonTextVariants = cva(
-  cn(
-    'text-foreground text-sm font-medium',
-    Platform.select({ web: 'pointer-events-none transition-colors' })
-  ),
-  {
-    variants: {
-      variant: {
-        default: 'text-primary-foreground',
-        destructive: 'text-white',
-        outline: cn(
-          'group-active:text-accent-foreground',
-          Platform.select({ web: 'group-hover:text-accent-foreground' })
-        ),
-        secondary: 'text-secondary-foreground',
-        ghost: 'group-active:text-accent-foreground',
-        link: cn(
-          'text-primary group-active:underline',
-          Platform.select({ web: 'underline-offset-4 hover:underline group-hover:underline' })
-        ),
-      },
-      size: {
-        default: '',
-        sm: '',
-        lg: '',
-        icon: '',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-);
+import { Pressable, type PressableProps } from './pressable';
+import { TextClassContext } from './text';
 
-type ButtonProps = React.ComponentProps<typeof Pressable> & React.RefAttributes<typeof Pressable> & VariantProps<typeof buttonVariants>;
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'link' | 'default' | 'destructive';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'default' | 'icon';
+type ButtonIcon = ComponentType<{ color?: string; size?: number; strokeWidth?: number }>;
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
+export type ButtonProps = Omit<PressableProps, 'children'> & {
+  children?: ReactNode;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  leadingIcon?: ButtonIcon;
+  trailingIcon?: ButtonIcon;
+  loading?: boolean;
+  fullWidth?: boolean;
+};
+
+const variantClass: Record<ButtonVariant, string> = {
+  primary: 'bg-primary',
+  default: 'bg-primary',
+  secondary: 'border border-border bg-surface-muted',
+  outline: 'border border-border bg-transparent',
+  ghost: 'bg-transparent',
+  danger: 'bg-danger',
+  destructive: 'bg-danger',
+  link: 'bg-transparent',
+};
+
+const textClass: Record<ButtonVariant, string> = {
+  primary: 'text-on-primary',
+  default: 'text-on-primary',
+  secondary: 'text-text',
+  outline: 'text-text',
+  ghost: 'text-text',
+  danger: 'text-on-primary',
+  destructive: 'text-on-primary',
+  link: 'text-primary underline',
+};
+
+const sizeClass: Record<ButtonSize, string> = {
+  sm: 'min-h-8 px-3',
+  md: 'min-h-10 px-4',
+  default: 'min-h-10 px-4',
+  lg: 'min-h-12 px-6',
+  icon: 'h-10 w-10',
+};
+
+export function Button({
+  children,
+  className,
+  disabled,
+  fullWidth,
+  leadingIcon: LeadingIcon,
+  loading = false,
+  size = 'md',
+  trailingIcon: TrailingIcon,
+  variant = 'primary',
+  ...props
+}: ButtonProps) {
+  const { colors } = useTheme();
+  const normalizedVariant = variant === 'default' ? 'primary' : variant === 'destructive' ? 'danger' : variant;
+  const iconColor = normalizedVariant === 'primary' || normalizedVariant === 'danger' ? colors.onPrimary : colors.text;
+  const iconSize = size === 'sm' ? 16 : 20;
+
   return (
-    <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
+    <TextClassContext.Provider value={`${textClass[variant]} font-sans-bold`}>
       <Pressable
-        className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
-        role="button"
-        {...props}
-      />
+        accessibilityRole="button"
+        className={`items-center justify-center gap-2 rounded-full ${variantClass[variant]} ${sizeClass[size]} ${fullWidth ? 'w-full' : ''} ${className ?? ''}`}
+        disabled={disabled || loading}
+        haptic="light"
+        {...props}>
+        {loading ? (
+          <ActivityIndicator color={normalizedVariant === 'primary' || normalizedVariant === 'danger' ? '#FFFFFF' : undefined} size="small" />
+        ) : (
+          <>
+            {LeadingIcon && <LeadingIcon color={iconColor} size={iconSize} strokeWidth={2} />}
+            {children}
+            {TrailingIcon && <TrailingIcon color={iconColor} size={iconSize} strokeWidth={2} />}
+          </>
+        )}
+      </Pressable>
     </TextClassContext.Provider>
   );
 }
 
-export { Button, buttonTextVariants, buttonVariants };
-export type { ButtonProps };
+export const buttonVariants = () => '';
+export const buttonTextVariants = () => '';
