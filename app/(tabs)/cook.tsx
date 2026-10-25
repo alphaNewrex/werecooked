@@ -36,7 +36,7 @@ export default function CookScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-28" showsVerticalScrollIndicator={false}>
         <Text className="font-display text-5xl leading-[1.05]">What can I make?</Text>
         <Text className="-mt-2 font-mono text-sm text-muted-foreground">

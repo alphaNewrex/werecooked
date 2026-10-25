@@ -36,7 +36,7 @@ export default function CookbookScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
       <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-32" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <View className="gap-1">

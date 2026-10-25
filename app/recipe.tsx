@@ -125,7 +125,7 @@ export default function RecipeScreen() {
 
   if (!recipe) {
     return (
-      <SafeAreaView className="flex-1 bg-background">
+      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
         <View className="flex-1 items-center justify-center gap-3 p-8">
           <Text className="font-display text-2xl">No recipe selected</Text>
           <Button variant="ghost" onPress={() => router.back()}><Text>Go back</Text></Button>
@@ -137,7 +137,7 @@ export default function RecipeScreen() {
   const have = recipe.ingredients.filter((item) => item.haveIt);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
       <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-5 p-5 pb-32" showsVerticalScrollIndicator={false}>
         <Text className="font-mono-medium text-xs uppercase tracking-widest text-tomato">
           {recipe.timeMinutes} min · serves {recipe.servings}

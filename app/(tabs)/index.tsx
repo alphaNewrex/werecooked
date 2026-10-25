@@ -136,8 +136,8 @@ export default function PantryScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1" contentContainerClassName="gap-5 p-5 pb-8" showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerClassName="gap-5 p-5 pb-8" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <Text className="font-display text-5xl leading-[1.05]">Pantry</Text>
           <Text testID="pantry-count" className="font-mono-medium text-sm text-muted-foreground">
@@ -246,7 +246,7 @@ export default function PantryScreen() {
         </Button>
         <View className="items-center gap-1">
           <Button size="icon" className="h-20 w-20 rounded-full border-8 border-tomato-soft bg-tomato" accessibilityLabel="Scan your shelf" disabled={scanning} onPress={() => void pickAndScan('camera')}>
-            {scanning ? <ScanLine color="#FFFFFF" size={28} /> : <Camera color="#FFFFFF" size={28} />}
+            {scanning ? <ScanLine color="#FFFFFF" size={30} strokeWidth={2.2} /> : <Camera color="#FFFFFF" size={30} strokeWidth={2.2} />}
           </Button>
           <Text className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             {scanning ? 'Reading your photo…' : 'Scan shelf'}
