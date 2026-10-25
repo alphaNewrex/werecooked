@@ -178,16 +178,24 @@ export default function RecipeScreen() {
             {missing.length === 0 && <Text variant="muted">Nothing extra — you’re all set.</Text>}
             {pricedMissing.map(({ ingredient, match }, index) => (
               <View className="flex-row items-end gap-2" key={`need-${index}-${ingredient.name}`}>
-                <Text className="shrink">{ingredient.name}</Text>
+                <View className="min-w-0 flex-1">
+                  <Text className="font-sans-medium">{ingredient.name}</Text>
+                  <Text className="font-mono text-xs text-muted-foreground">{ingredient.amount}</Text>
+                </View>
                 <View className="mb-1 flex-1 border-b border-dotted border-border" />
-                <Text className="font-mono text-xs">{ingredient.amount}</Text>
                 {match ? (
-                  <View className="items-end">
-                    <Badge testID="kroger-price" className="border-0 bg-butter-soft"><Text className="font-mono text-xs text-foreground">${match.priceUsd.toFixed(2)} <Text className="text-[9px]">Kroger</Text></Text></Badge>
+                  <View testID="kroger-price" className="items-end">
+                    <View className="flex-row items-baseline gap-1 rounded-full bg-butter-soft px-2 py-1">
+                      <Text className="font-mono-medium text-xs text-foreground">${match.priceUsd.toFixed(2)}</Text>
+                      <Text className="font-mono text-[10px] text-leaf">Kroger</Text>
+                    </View>
                     {match.onSale && <Text className="font-mono text-[10px] text-muted-foreground line-through">${match.regularUsd.toFixed(2)}</Text>}
                   </View>
                 ) : (
-                  <Badge className="border-0 bg-tomato-soft"><Text className="font-mono text-xs text-tomato">~${(ingredient.estPriceUsd ?? 0).toFixed(2)} <Text className="text-[9px]">est.</Text></Text></Badge>
+                  <View className="flex-row items-baseline gap-1 rounded-full bg-tomato-soft px-2 py-1">
+                    <Text className="font-mono-medium text-xs text-foreground">~${(ingredient.estPriceUsd ?? 0).toFixed(2)}</Text>
+                    <Text className="font-mono text-[10px] text-tomato">est.</Text>
+                  </View>
                 )}
               </View>
             ))}

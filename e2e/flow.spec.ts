@@ -11,6 +11,7 @@ declare global {
 }
 
 async function addItem(page: Page, name: string, quantity: string, category: string) {
+  const before = await pantryCount(page);
   const nameInput = page.getByPlaceholder('Ingredient name');
   if (!(await nameInput.isVisible())) {
     await page.getByRole('button', { name: 'Add item', exact: true }).click();
@@ -19,6 +20,10 @@ async function addItem(page: Page, name: string, quantity: string, category: str
   await page.getByPlaceholder('Quantity').fill(quantity);
   await page.getByPlaceholder('Category').fill(category);
   await page.getByRole('button', { name: 'Add to pantry', exact: true }).click();
+  const expectedCount = before + 1;
+  await expect(page.getByTestId('pantry-count')).toHaveText(
+    `${expectedCount} ${expectedCount === 1 ? 'item' : 'items'}`,
+  );
 }
 
 async function uploadWithPicker(page: Page, buttonName: string, fileName: string) {
