@@ -35,9 +35,9 @@ Product aliases: `have`→success, `partial`→warning, `need`→primary, `price
 ## Type roles (font file, size/line-height px, letter-spacing px)
 | role | font | size/lh | tracking | case |
 |---|---|---|---|---|
-| display-xl | BricolageGrotesque_800ExtraBold | 44/46 | -0.5 | |
-| display-lg | BricolageGrotesque_800ExtraBold | 34/38 | -0.3 | |
-| display-md | BricolageGrotesque_700Bold | 26/30 | -0.2 | |
+| display-xl | YoungSerif_400Regular | 34/40 | -0.2 | |
+| display-lg | YoungSerif_400Regular | 28/34 | -0.2 | |
+| display-md | YoungSerif_400Regular | 22/28 | -0.1 | |
 | title | DMSans_700Bold | 20/26 | 0 | |
 | body-lg | DMSans_400Regular | 17/24 | 0 | |
 | body | DMSans_400Regular | 15/22 | 0 | |

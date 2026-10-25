@@ -79,8 +79,8 @@ module.exports = {
         ])
       ),
       fontFamily: {
-        display: ['BricolageGrotesque_800ExtraBold'],
-        'display-bold': ['BricolageGrotesque_700Bold'],
+        display: ['YoungSerif_400Regular'],
+        'display-bold': ['YoungSerif_400Regular'],
         sans: ['DMSans_400Regular'],
         'sans-medium': ['DMSans_500Medium'],
         'sans-bold': ['DMSans_700Bold'],

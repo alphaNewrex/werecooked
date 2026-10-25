@@ -38,7 +38,7 @@ Colors, type roles, radii, icon sizes, elevation, and motion values live in [`li
 | `warning` | Partial and price state |
 | `danger` | Errors and destructive actions |
 
-Type roles are `display-xl`, `display-lg`, `display-md`, `title`, `body-lg`, `body`, `body-strong`, `body-sm`, `caption`, `label`, `numeric`, and `numeric-sm`.
+Type roles are `display-xl` (Young Serif 34/40), `display-lg` (Young Serif 28/34), `display-md` (Young Serif 22/28), `title`, `body-lg`, `body`, `body-strong`, `body-sm`, `caption`, `label`, `numeric`, and `numeric-sm`.
 
 ## Motion
 

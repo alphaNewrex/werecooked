@@ -186,7 +186,7 @@ export default function PantryScreen() {
           <Card className="gap-4 rounded-xl border-border bg-card p-5">
             <View className="flex-row items-center justify-between">
               <View>
-                <Text className="font-display text-2xl">Found {detected.length} items</Text>
+                <Text variant="display-md">Found {detected.length} items</Text>
                 <Text variant="muted">Tap an item to leave it out.</Text>
               </View>
               <Button variant="ghost" size="sm" onPress={() => setDetected([])}><Text>Discard</Text></Button>

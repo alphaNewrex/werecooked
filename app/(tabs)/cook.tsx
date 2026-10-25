@@ -55,7 +55,7 @@ export default function CookScreen() {
         {recipes.length > 0 && (
           <View className="gap-3">
             <View className="flex-row items-baseline justify-between">
-              <Text className="font-display text-2xl">Best matches</Text>
+              <Text variant="display-md">Best matches</Text>
               <Text className="font-mono text-xs text-muted-foreground">Ranked for you</Text>
             </View>
             {recipes.map((recipe, index) => (

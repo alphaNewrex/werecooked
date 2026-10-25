@@ -23,7 +23,7 @@ Every direction renders the **same sample set** with the same real content, in l
 - Thesis: a farmers-market stall: fresh produce colors, produce-sticker labels.
 - Palette light: bg `#F6F7F1`, surface `#FFFFFF`, ink `#16211A`, muted `#5D6B61`, border `#DCE3D8`, leaf (have) `#2F8F4E`, butter (partial/price) `#F4C842`, tomato (primary/need) `#E8482A`, danger `#C8243B` (raspberry, distinct from tomato).
 - Palette dark: bg `#101712`, surface `#18221B`, ink `#EEF2EA`, muted `#9DAA9F`, border `#2A362D`, leaf `#5BC27C`, butter `#F7D560`, tomato `#FF6A4D`, danger `#FF5C77`.
-- Type: Bricolage Grotesque 800 display (headers only), DM Sans body, IBM Plex Mono numerics/labels.
+- Type: Young Serif display (headers only), DM Sans body, IBM Plex Mono numerics/labels.
 - Shape: cards 16, controls full pill.
 - Signature: **produce-sticker chips** — have/partial/need and price shown as small oval stickers with a slight rotation (−2°..2°), like PLU stickers on fruit.
 - Motion character: soft-bouncy (smooth spring default, bouncy for stickers landing).

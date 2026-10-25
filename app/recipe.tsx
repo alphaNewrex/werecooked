@@ -132,7 +132,7 @@ export default function RecipeScreen() {
     return (
       <Screen scroll={false}>
         <View className="flex-1 items-center justify-center gap-3 p-8">
-          <Text className="font-display text-2xl">No recipe selected</Text>
+          <Text variant="display-md">No recipe selected</Text>
           <Button variant="ghost" onPress={() => router.back()}><Text>Go back</Text></Button>
         </View>
       </Screen>
@@ -157,11 +157,11 @@ export default function RecipeScreen() {
         )}
 
         <Card className="flex-row items-center gap-3 rounded-2xl border-0 bg-success-soft p-4 shadow-none">
-          <Text className="font-display text-4xl text-success">{have.length}</Text>
+          <Text variant="display-lg" tone="success">{have.length}</Text>
           <View><Text className="font-sans-bold">{have.length === 1 ? 'ingredient' : 'ingredients'}</Text><Text variant="muted">already in your pantry</Text></View>
         </Card>
 
-        <Text className="font-display text-2xl">Ingredients</Text>
+        <Text variant="display-md">Ingredients</Text>
         <Card className="gap-3 rounded-2xl border-border bg-card p-4">
           <Text className="font-mono-medium text-xs uppercase tracking-widest text-success">You have</Text>
           {have.length === 0 && <Text variant="muted">Nothing from your pantry yet.</Text>}
@@ -252,7 +252,7 @@ export default function RecipeScreen() {
           )}
         </View>
 
-        <Text className="font-display text-2xl">Method</Text>
+        <Text variant="display-md">Method</Text>
         <View className="gap-3">
           {recipe.steps.map((step, index) => (
             <View className="flex-row items-start gap-3" key={`${index}-${step}`} testID="method-step">

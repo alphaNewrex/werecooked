@@ -165,7 +165,7 @@ export default function ReelScreen() {
         <Card className="min-h-80 items-center justify-center gap-4 rounded-xl border-2 border-dashed border-border bg-muted/50 p-7">
           <Smartphone color={colors.text} size={34} strokeWidth={1.7} />
           <ImagePlus color={colors.primary} size={42} strokeWidth={1.7} />
-          <Text className="font-display text-2xl text-center">Have a recipe screenshot?</Text>
+          <Text variant="display-md" className="text-center">Have a recipe screenshot?</Text>
           <Text variant="muted" className="text-center leading-5">
             Choose a clear frame with the caption or ingredient text visible.
           </Text>
@@ -179,7 +179,7 @@ export default function ReelScreen() {
         {recipe && (
           <View className="gap-3">
             <View className="flex-row items-baseline justify-between">
-              <Text className="font-display text-2xl">Here’s the dish</Text>
+              <Text variant="display-md">Here’s the dish</Text>
               <Text variant="muted">Compared with your pantry</Text>
             </View>
             <RecipeCard

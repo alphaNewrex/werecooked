@@ -55,6 +55,7 @@ async function loadUntil(
     await page.goto(route);
     await page.waitForLoadState('networkidle');
     await page.addStyleTag({ content: '#error-toast { display: none !important; }' });
+    await page.evaluate(() => document.getElementById('error-toast')?.remove());
     try {
       await assertion();
       return;
@@ -69,10 +70,14 @@ async function loadUntil(
 for (const mode of ['light', 'dark'] as const) {
   test(`style guide ${mode}`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: mode });
-    await page.goto('/dev/design');
-    await page.waitForLoadState('networkidle');
-    await page.addStyleTag({ content: '#error-toast { display: none !important; }' });
-    await expect(page.getByText('Market Stall', { exact: true })).toBeVisible();
+    await loadUntil(page, '/dev/design', () => expect(page.getByText('Market Stall', { exact: true })).toBeVisible());
+    await page.evaluate(() => {
+      const scroll = document.getElementById('design-scroll');
+      if (!(scroll instanceof HTMLElement)) return;
+      scroll.style.height = `${scroll.scrollHeight}px`;
+      scroll.style.maxHeight = 'none';
+      scroll.style.overflow = 'visible';
+    });
     await expect(page).toHaveScreenshot(`styleguide-${mode}.png`, { fullPage: true });
   });
 

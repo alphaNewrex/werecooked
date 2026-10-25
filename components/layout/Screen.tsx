@@ -46,7 +46,7 @@ export function ScreenHeader({
   title: string;
 }) {
   return (
-    <View className="flex-row items-end justify-between gap-3">
+    <View className="flex-row items-baseline justify-between gap-3">
       <View className="min-w-0 flex-1 gap-1">
         {eyebrow && <TextLabel>{eyebrow}</TextLabel>}
         <TextDisplay>{title}</TextDisplay>

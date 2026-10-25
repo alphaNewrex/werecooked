@@ -30,7 +30,7 @@ export default function CookModeScreen() {
     return (
       <Screen scroll={false}>
         <View className="flex-1 items-center justify-center gap-3 p-8">
-          <Text className="font-display text-2xl">No recipe selected</Text>
+          <Text variant="display-md">No recipe selected</Text>
           <Button variant="ghost" onPress={() => router.back()}><Text>Go back</Text></Button>
         </View>
       </Screen>

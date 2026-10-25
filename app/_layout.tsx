@@ -1,9 +1,5 @@
 import { useFonts } from 'expo-font';
 import {
-  BricolageGrotesque_700Bold,
-  BricolageGrotesque_800ExtraBold,
-} from '@expo-google-fonts/bricolage-grotesque';
-import {
   DMSans_400Regular,
   DMSans_500Medium,
   DMSans_700Bold,
@@ -12,6 +8,7 @@ import {
   IBMPlexMono_400Regular,
   IBMPlexMono_500Medium,
 } from '@expo-google-fonts/ibm-plex-mono';
+import { YoungSerif_400Regular } from '@expo-google-fonts/young-serif';
 import { Stack, ThemeProvider } from 'expo-router';
 import { PortalHost } from '@rn-primitives/portal';
 import * as SplashScreen from 'expo-splash-screen';
@@ -34,13 +31,12 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    BricolageGrotesque_700Bold,
-    BricolageGrotesque_800ExtraBold,
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_700Bold,
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
+    YoungSerif_400Regular,
   });
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
