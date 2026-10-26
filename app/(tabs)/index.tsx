@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Check, Images, Pencil, Plus, ScanLine, Trash2, X } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { type ComponentRef, useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 
 import { useFeedback } from '@/components/feedback';
 import { Screen } from '@/components/layout';
@@ -36,6 +36,8 @@ export default function PantryScreen() {
   const [scanning, setScanning] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const nameRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   const groups = useMemo(() => {
     const grouped = new Map<string, typeof items>();
@@ -76,7 +78,19 @@ export default function PantryScreen() {
     setName(item.name);
     setQuantity(item.quantity ?? '');
     setCategory(item.category ?? '');
+    openForm();
+  }
+
+  function openForm() {
     setFormOpen(true);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    setTimeout(() => nameRef.current?.focus(), 50);
+  }
+
+  function startNewItem() {
+    resetForm();
+    setFormError(null);
+    openForm();
   }
 
   async function pickAndScan(source: 'camera' | 'library') {
@@ -137,7 +151,7 @@ export default function PantryScreen() {
 
   const dock = (
     <View className="flex-row items-center justify-between px-5 pb-2 pt-3">
-      <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Add item" onPress={() => { setEditingId(null); setFormOpen(true); }}>
+      <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full border border-border bg-card" accessibilityLabel="Add item" onPress={startNewItem}>
         <Plus color={colors.text} size={21} />
       </Button>
       <View className="items-center gap-1">
@@ -154,7 +168,7 @@ export default function PantryScreen() {
 
   return (
     <Screen scroll={false} footer={dock}>
-      <ScrollView style={{ flex: 1 }} contentContainerClassName="gap-5 p-5 pb-40" showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerClassName="gap-5 p-5 pb-40" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-end justify-between">
           <Text variant="display-xl">Pantry</Text>
           <Text testID="pantry-count" className="font-mono-medium text-sm text-muted-foreground">
@@ -172,7 +186,7 @@ export default function PantryScreen() {
                 </Button>
               )}
             </View>
-            <Input placeholder="Ingredient name" value={name} onChangeText={setName} />
+            <Input ref={nameRef} placeholder="Ingredient name" value={name} onChangeText={setName} />
             <View className="flex-row gap-2">
               <Input placeholder="Quantity" value={quantity} onChangeText={setQuantity} className="flex-1" mono />
               <Input placeholder="Category" value={category} onChangeText={setCategory} className="flex-1" />

@@ -25,9 +25,9 @@ export function Screen({
     <View className="flex-1">{children}</View>
   );
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {content}
-      {footer && <View className="absolute inset-x-0 bottom-0 z-10 border-t border-border px-5 pb-2 pt-3" style={{ backgroundColor: colors.bg, bottom: 0, paddingBottom: 76 }}>{footer}</View>}
+      {footer && <View className="absolute inset-x-0 bottom-0 z-10 border-t border-border" style={{ backgroundColor: colors.bg }}>{footer}</View>}
     </SafeAreaView>
   );
 }
