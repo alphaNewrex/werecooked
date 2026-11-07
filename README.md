@@ -2,6 +2,13 @@
 
 We're Cooked! helps you turn what is already in your kitchen — or a recipe saved from a social reel — into dinner. Add pantry items by hand or scan a photo, ask for ranked recipe suggestions, then see one recipe view with pantry matches, missing-item price estimates, cooking steps, and a grocery handoff.
 
+<p align="center">
+  <img src="docs/media/screenshot-pantry.png" width="260" alt="Pantry tab with an add-ingredient form and pantry items grouped by category: dairy, pantry, produce, and protein">
+  <img src="docs/media/screenshot-reel.png" width="260" alt="Reel tab with an Instagram link field, the iOS Shortcut link, and a recipe screenshot picker">
+  <img src="docs/media/screenshot-recipe.png" width="260" alt="Recipe view for Chili Crunch Chicken Tenders listing ingredients you have and ingredients you need, with estimated prices and a total">
+</p>
+<p align="center"><sub>Pantry · Reel to recipe · Recipe with what you have, what you need, and price estimates</sub></p>
+
 Start with `npm install`, copy `.env.example` to `.env`, set `AI_MODEL` plus the matching provider key, and run `npx expo start`. Typecheck with `npx tsc --noEmit`. The Expo Router server routes are under `app/api/`; the app is intentionally local-first for pantry storage.
 
 The recommended provider is Azure AI Foundry: set `AI_MODEL=azure:<deployment-name>`, where the model id is the Foundry **deployment name**, plus `AZURE_API_KEY` and either `AZURE_RESOURCE_NAME` or `AZURE_BASE_URL` (the base URL wins when both are present). The Azure deployment must support vision/image input and structured JSON output because pantry scans and reel screenshots send images and require typed recipes. OpenAI, Anthropic, and Google remain available as alternatives in `.env.example`.
